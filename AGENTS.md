@@ -5,6 +5,8 @@ It is the Codex-side counterpart to `../claudecode-buddy`: plugins here should e
 
 ## Critical Rules
 
+- For substantial work, follow `docs/development-workflow.md`.
+  The workflow document is authoritative for plan review, build, verification, review, and ship steps.
 - Prefer the current Codex coding model for implementation work.
   Use external CLIs and external models as review aids unless the user explicitly asks for delegated implementation.
 - For substantial code changes, create a feature branch before planning or implementation.
@@ -75,6 +77,7 @@ Tables, code blocks, lists, and URLs keep their natural formatting.
 ## Git
 
 - Check `git status` at session start.
+- Follow `docs/development-workflow.md` for branch, commit, handoff, review, and ship sequencing.
 - Preserve user changes.
   Never revert work you did not make unless the user explicitly asks.
 - Do not commit every small edit individually.
@@ -85,6 +88,7 @@ Tables, code blocks, lists, and URLs keep their natural formatting.
 ## Plans
 
 Use plans for substantial code changes such as new plugins, new commands, runner refactors, marketplace integrations, broad test harness changes, or cross-cutting behavior changes.
+Follow `docs/development-workflow.md` for the complete plan review gate and approval sequence.
 
 Execution plans go in `docs/plans/`.
 Design specs go in `docs/specs/` only when the work introduces or refines an architectural decision or resolves ambiguity that future plans need to respect.
@@ -101,6 +105,7 @@ Avoid duplicate logic and keep behavior in one source of truth.
 ## Reviews
 
 Use review gates for substantial plans and implementation changes.
+Follow `docs/development-workflow.md` and `docs/code-review.md` for the current review commands, finding format, and resolution rules.
 At minimum:
 
 - Self-review the plan or diff critically before implementation or shipping.
