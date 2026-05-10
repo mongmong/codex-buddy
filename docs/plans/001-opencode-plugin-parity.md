@@ -620,7 +620,7 @@ git commit -m "feat: add opencode review setup workflows"
 - Create: `plugins/opencode/commands/cancel.md`
 - Create or modify tests under `tests/opencode/`
 
-- [ ] **Step 1: Verify job lifecycle source tests**
+- [x] **Step 1: Verify job lifecycle source tests**
 
 Run:
 
@@ -639,7 +639,7 @@ test -f /home/chris/workshop/claudecode-buddy/plugins/opencode/commands/cancel.m
 
 Expected: all commands exit 0.
 
-- [ ] **Step 2: Copy job lifecycle tests**
+- [x] **Step 2: Copy job lifecycle tests**
 
 Run:
 
@@ -649,7 +649,7 @@ cp /home/chris/workshop/claudecode-buddy/plugins/opencode/commands/{run,status,r
 cp /home/chris/workshop/claudecode-buddy/tests/opencode/{run-cmd,status-cmd,result-cmd,cancel-cmd,e2e}.test.mjs tests/opencode/
 ```
 
-- [ ] **Step 3: Preserve run command behavior**
+- [x] **Step 3: Preserve run command behavior**
 
 Port run behavior with these requirements:
 
@@ -662,7 +662,7 @@ Port run behavior with these requirements:
 - `tests/opencode/run-cmd.test.mjs`, `status-cmd.test.mjs`, `result-cmd.test.mjs`, and `cancel-cmd.test.mjs` pass `CODEX_PROJECT_DIR` instead of `CLAUDE_PROJECT_DIR`.
 - Copied `run`, `status`, `result`, and `cancel` command docs call `node plugins/opencode/scripts/buddy.mjs <subcommand>` and do not reference Claude-only variables.
 
-- [ ] **Step 4: Verify no routine system temp dependency**
+- [x] **Step 4: Verify no routine system temp dependency**
 
 Run:
 
@@ -672,7 +672,7 @@ rg -n "TMPDIR|/tmp|opencode-prompts" plugins/opencode/scripts tests/opencode
 
 Expected: no runtime path uses system temp for plugin-controlled prompt or task files.
 
-- [ ] **Step 5: Run job lifecycle tests**
+- [x] **Step 5: Run job lifecycle tests**
 
 Run:
 
@@ -682,7 +682,7 @@ npm test -- tests/opencode/run-cmd.test.mjs tests/opencode/status-cmd.test.mjs t
 
 Expected: all selected tests pass.
 
-- [ ] **Step 6: Commit Task 5**
+- [x] **Step 6: Commit Task 5**
 
 Run:
 
