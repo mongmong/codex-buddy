@@ -40,6 +40,8 @@ Create:
 - `plugins/opencode/README.md`
 - `plugins/opencode/CHANGELOG.md`
 - `plugins/opencode/hooks.json`
+- `plugins/opencode/hooks/session-start.mjs`
+- `plugins/opencode/hooks/session-end.mjs`
 - `plugins/opencode/skills/opencode-cli-runtime/SKILL.md`
 - `plugins/opencode/prompts/adversarial-review.md`
 - `plugins/opencode/prompts/stop-review-gate.md`
@@ -79,27 +81,48 @@ Modify:
 - Modify: `docs/specs/000-codex-plugin-surface-research.md`
 - Modify: `docs/specs/001-opencode-plugin.md`
 
-- [ ] **Step 1: Inspect local Codex plugin examples**
+- [ ] **Step 1: Verify required local source inputs**
 
 Run:
 
 ```bash
-find /home/chris/.codex/.tmp/plugins/plugins -maxdepth 4 -type f | sort
+test -d /home/chris/workshop/claudecode-buddy/plugins/opencode
+test -d /home/chris/workshop/claudecode-buddy/tests/opencode
+test -f /home/chris/.codex/skills/.system/plugin-creator/references/plugin-json-spec.md
 ```
 
-Expected: output includes installed plugin examples with `.codex-plugin/plugin.json`, skills, scripts, hooks, and app or MCP files.
+Expected: all commands exit 0.
+If a source path is missing, stop and update the source input paths before continuing.
 
-- [ ] **Step 2: Search for command or agent surface examples**
+- [ ] **Step 2: Inspect local Codex plugin examples**
 
 Run:
 
 ```bash
-rg -n '"commands"|"agents"|commands/|agents/' /home/chris/.codex/.tmp/plugins /home/chris/.codex/skills/.system/plugin-creator
+if test -d /home/chris/.codex/.tmp/plugins/plugins; then
+  find /home/chris/.codex/.tmp/plugins/plugins -maxdepth 4 -type f | sort
+else
+  echo "No local Codex tmp plugin examples found"
+fi
 ```
 
-Expected: either concrete evidence for Codex command or agent surfaces, or no evidence.
+Expected: output includes installed plugin examples with `.codex-plugin/plugin.json`, skills, scripts, hooks, and app or MCP files, or prints the explicit no-examples message.
 
-- [ ] **Step 3: Update surface research**
+- [ ] **Step 3: Search for command, agent, hook, and skill surface examples**
+
+Run:
+
+```bash
+if test -d /home/chris/.codex/.tmp/plugins; then
+  rg -n '"commands"|"agents"|"hooks"|commands/|agents/|hooks/|skills/' /home/chris/.codex/.tmp/plugins /home/chris/.codex/skills/.system/plugin-creator
+else
+  rg -n '"commands"|"agents"|"hooks"|commands/|agents/|hooks/|skills/' /home/chris/.codex/skills/.system/plugin-creator
+fi
+```
+
+Expected: concrete evidence for any Codex command, agent, hook, and skill directory surfaces, or no evidence for that surface.
+
+- [ ] **Step 4: Update surface research**
 
 Edit `docs/specs/000-codex-plugin-surface-research.md`.
 Record one of these outcomes:
@@ -123,7 +146,28 @@ The local Codex plugin references expose the following command or agent surface:
 This implementation uses that surface for the supported `opencode` commands.
 ```
 
-- [ ] **Step 4: Update the capability matrix**
+Also record a hook and skill-layout outcome:
+
+```markdown
+### Hooks
+
+The local Codex plugin references expose `<verified hook path or field>`.
+This implementation uses only the verified hook events and leaves unsupported source hook behavior documented as a host limitation.
+```
+
+or:
+
+```markdown
+### Hooks
+
+The local Codex plugin references do not expose concrete hook event names.
+This implementation ships runtime gate support but does not install active lifecycle hooks until Codex hook events are verified.
+```
+
+For skills, verify whether nested `skills/<name>/SKILL.md` is supported by the plugin manifest reference.
+If it is not supported, update this plan before Task 4 to use the verified skill layout.
+
+- [ ] **Step 5: Update the capability matrix**
 
 Edit `docs/specs/001-opencode-plugin.md`.
 For each capability row, set the Codex status to one of:
@@ -134,7 +178,7 @@ For each capability row, set the Codex status to one of:
 
 Expected: no capability row remains ambiguous about whether it is implemented or blocked by host support.
 
-- [ ] **Step 5: Verify docs**
+- [ ] **Step 6: Verify docs**
 
 Run:
 
@@ -144,7 +188,7 @@ rg -n "TB[D]|TO[D]O|place[h]older|may ne[e]d|ma[y]be|uncl[e]ar" docs/specs/000-c
 
 Expected: exit 1 with no matches.
 
-- [ ] **Step 6: Commit Task 1**
+- [ ] **Step 7: Commit Task 1**
 
 Run:
 
@@ -177,7 +221,7 @@ Create `package.json`:
     "node": ">=18.18.0"
   },
   "scripts": {
-    "test": "node --test tests/**/*.test.mjs"
+    "test": "node --test tests/opencode"
   }
 }
 ```
@@ -283,12 +327,19 @@ node_modules/
 .codex-buddy/
 ```
 
+Run:
+
+```bash
+grep -qxF "node_modules/" .gitignore || printf "node_modules/\n" >> .gitignore
+grep -qxF ".codex-buddy/" .gitignore || printf ".codex-buddy/\n" >> .gitignore
+```
+
 - [ ] **Step 6: Verify scaffold JSON**
 
 Run:
 
 ```bash
-node -e "JSON.parse(require('fs').readFileSync('package.json','utf8')); JSON.parse(require('fs').readFileSync('.agents/plugins/marketplace.json','utf8')); JSON.parse(require('fs').readFileSync('plugins/opencode/.codex-plugin/plugin.json','utf8'))"
+node --input-type=module -e "import fs from 'node:fs'; JSON.parse(fs.readFileSync('package.json','utf8')); JSON.parse(fs.readFileSync('.agents/plugins/marketplace.json','utf8')); JSON.parse(fs.readFileSync('plugins/opencode/.codex-plugin/plugin.json','utf8'))"
 ```
 
 Expected: exit 0.
@@ -308,7 +359,22 @@ git commit -m "feat: scaffold opencode codex plugin"
 - Create runtime files under `plugins/opencode/scripts/`
 - Create tests under `tests/opencode/`
 
-- [ ] **Step 1: Copy source runtime and tests**
+- [ ] **Step 1: Verify source runtime and test files**
+
+Run:
+
+```bash
+test -f /home/chris/workshop/claudecode-buddy/plugins/opencode/scripts/buddy.mjs
+test -f /home/chris/workshop/claudecode-buddy/plugins/opencode/scripts/lib/config.mjs
+test -f /home/chris/workshop/claudecode-buddy/plugins/opencode/scripts/lib/jobs.mjs
+test -f /home/chris/workshop/claudecode-buddy/tests/opencode/helpers.mjs
+test -f /home/chris/workshop/claudecode-buddy/tests/opencode/prompt-cmd.test.mjs
+```
+
+Expected: all commands exit 0.
+If any command fails, update this plan with the new source path or intentionally remove that source file from scope before copying.
+
+- [ ] **Step 2: Copy source runtime and tests**
 
 Run:
 
@@ -319,12 +385,13 @@ cp /home/chris/workshop/claudecode-buddy/plugins/opencode/scripts/lib/*.mjs plug
 cp /home/chris/workshop/claudecode-buddy/plugins/opencode/prompts/*.md plugins/opencode/prompts/
 cp /home/chris/workshop/claudecode-buddy/plugins/opencode/schemas/*.json plugins/opencode/schemas/
 cp /home/chris/workshop/claudecode-buddy/tests/opencode/helpers.mjs tests/opencode/helpers.mjs
-cp /home/chris/workshop/claudecode-buddy/tests/opencode/{args,cli-detection,config-detection,config,invoke,jobs,list-models,prompt,review-dispatch,scope,session-capture,sessions,trailer}.test.mjs tests/opencode/
+cp /home/chris/workshop/claudecode-buddy/tests/opencode/{args,cli-detection,config-detection,config,invoke,jobs,list-models,prompt,prompt-cmd,review-dispatch,scope,session-capture,sessions,trailer}.test.mjs tests/opencode/
 ```
 
 Expected: files exist in the Codex plugin tree.
+The repository is expected to be in an unadapted intermediate state after this copy step; do not test or commit until Steps 3 and 4 complete.
 
-- [ ] **Step 2: Replace state directory names**
+- [ ] **Step 3: Replace state directory names**
 
 In runtime and tests, replace `.claudecode-buddy` with `.codex-buddy`.
 Keep source repo references in docs untouched.
@@ -337,9 +404,9 @@ rg -n "\\.claudecode-buddy" plugins/opencode tests/opencode
 
 Expected after edits: no matches.
 
-- [ ] **Step 3: Replace system temp prompt handling**
+- [ ] **Step 4: Replace system temp prompt handling**
 
-Replace the source `allowedPromptDir()` and task-file validation behavior with project-local runtime paths:
+In `plugins/opencode/scripts/buddy.mjs`, replace the source `allowedPromptDir()` and task-file validation behavior with project-local runtime paths:
 
 - `runtimeRoot(projectDir)` returns `<projectDir>/.codex-buddy/opencode`.
 - `tmpRoot(projectDir)` returns `<projectDir>/.codex-buddy/opencode/tmp`.
@@ -347,6 +414,22 @@ Replace the source `allowedPromptDir()` and task-file validation behavior with p
 - Prompt and task files are accepted only under `tmpRoot(projectDir)`.
 - Foreground commands remove their per-run transient directory before returning.
 - Startup or command entry prunes stale transient directories older than 24 hours.
+- Error messages refer to `.codex-buddy/opencode/tmp/`, not `$TMPDIR/opencode-prompts/`.
+
+Concrete replacement target:
+
+```javascript
+function runtimeRoot(projectDir) {
+  return join(projectDir, ".codex-buddy", "opencode");
+}
+
+function tmpRoot(projectDir) {
+  return join(runtimeRoot(projectDir), "tmp");
+}
+```
+
+Update `isUnderAllowedDir`, `readTaskFileFdBound`, `parsePromptArgs`, and `parseRunArgs` call sites to pass the detected project directory into path validation.
+Update `tests/opencode/prompt-cmd.test.mjs` and `tests/opencode/run-cmd.test.mjs` so allowed files are created under `<repoDir>/.codex-buddy/opencode/tmp/` instead of `${TMPDIR}/opencode-prompts/`.
 
 Run:
 
@@ -356,17 +439,17 @@ rg -n "TMPDIR|/tmp|opencode-prompts|allowedPromptDir" plugins/opencode/scripts t
 
 Expected: matches only in tests that assert rejected legacy paths or docs strings explaining the legacy source behavior.
 
-- [ ] **Step 4: Run core tests**
+- [ ] **Step 5: Run core tests**
 
 Run:
 
 ```bash
-npm test -- tests/opencode/args.test.mjs tests/opencode/config.test.mjs tests/opencode/jobs.test.mjs tests/opencode/trailer.test.mjs
+npm test -- tests/opencode/args.test.mjs tests/opencode/cli-detection.test.mjs tests/opencode/config-detection.test.mjs tests/opencode/config.test.mjs tests/opencode/invoke.test.mjs tests/opencode/jobs.test.mjs tests/opencode/list-models.test.mjs tests/opencode/prompt.test.mjs tests/opencode/prompt-cmd.test.mjs tests/opencode/review-dispatch.test.mjs tests/opencode/scope.test.mjs tests/opencode/session-capture.test.mjs tests/opencode/sessions.test.mjs tests/opencode/trailer.test.mjs
 ```
 
 Expected: all selected tests pass.
 
-- [ ] **Step 5: Commit Task 3**
+- [ ] **Step 6: Commit Task 3**
 
 Run:
 
@@ -385,7 +468,20 @@ git commit -m "feat: port opencode runtime core"
 - Create or modify review/setup tests under `tests/opencode/`
 - Create: `plugins/opencode/skills/opencode-cli-runtime/SKILL.md`
 
-- [ ] **Step 1: Copy review and setup tests**
+- [ ] **Step 1: Verify review and setup source tests**
+
+Run:
+
+```bash
+test -f /home/chris/workshop/claudecode-buddy/tests/opencode/review-cmd.test.mjs
+test -f /home/chris/workshop/claudecode-buddy/tests/opencode/setup-cmd.test.mjs
+test -f /home/chris/workshop/claudecode-buddy/tests/opencode/models-cmd.test.mjs
+test -f /home/chris/workshop/claudecode-buddy/tests/opencode/variant.test.mjs
+```
+
+Expected: all commands exit 0.
+
+- [ ] **Step 2: Copy review and setup tests**
 
 Run:
 
@@ -393,7 +489,7 @@ Run:
 cp /home/chris/workshop/claudecode-buddy/tests/opencode/{review-cmd,setup-cmd,models-cmd,variant}.test.mjs tests/opencode/
 ```
 
-- [ ] **Step 2: Adjust prompts for Codex**
+- [ ] **Step 3: Adjust prompts for Codex**
 
 Edit prompt builders so review prompts reference:
 
@@ -403,7 +499,7 @@ Edit prompt builders so review prompts reference:
 
 They must not reference Claude-only command names except in source-compatibility notes.
 
-- [ ] **Step 3: Add skill-backed runtime instructions**
+- [ ] **Step 4: Add skill-backed runtime instructions**
 
 Create `plugins/opencode/skills/opencode-cli-runtime/SKILL.md`:
 
@@ -441,7 +537,7 @@ node plugins/opencode/scripts/buddy.mjs review --scope branch --model opencode-g
 For investigations, use read-only prompts and `--model opencode-go/deepseek-v4-pro` or `--model opencode-go/glm-5.1`.
 ````
 
-- [ ] **Step 4: Run review/setup tests**
+- [ ] **Step 5: Run review/setup tests**
 
 Run:
 
@@ -451,7 +547,7 @@ npm test -- tests/opencode/review-cmd.test.mjs tests/opencode/setup-cmd.test.mjs
 
 Expected: all selected tests pass.
 
-- [ ] **Step 5: Commit Task 4**
+- [ ] **Step 6: Commit Task 4**
 
 Run:
 
@@ -469,7 +565,21 @@ git commit -m "feat: add opencode review setup workflows"
 - Modify: `plugins/opencode/scripts/lib/supervisor.mjs`
 - Create or modify tests under `tests/opencode/`
 
-- [ ] **Step 1: Copy job lifecycle tests**
+- [ ] **Step 1: Verify job lifecycle source tests**
+
+Run:
+
+```bash
+test -f /home/chris/workshop/claudecode-buddy/tests/opencode/run-cmd.test.mjs
+test -f /home/chris/workshop/claudecode-buddy/tests/opencode/status-cmd.test.mjs
+test -f /home/chris/workshop/claudecode-buddy/tests/opencode/result-cmd.test.mjs
+test -f /home/chris/workshop/claudecode-buddy/tests/opencode/cancel-cmd.test.mjs
+test -f /home/chris/workshop/claudecode-buddy/tests/opencode/e2e.test.mjs
+```
+
+Expected: all commands exit 0.
+
+- [ ] **Step 2: Copy job lifecycle tests**
 
 Run:
 
@@ -477,7 +587,7 @@ Run:
 cp /home/chris/workshop/claudecode-buddy/tests/opencode/{run-cmd,status-cmd,result-cmd,cancel-cmd,e2e}.test.mjs tests/opencode/
 ```
 
-- [ ] **Step 2: Preserve run command behavior**
+- [ ] **Step 3: Preserve run command behavior**
 
 Port run behavior with these requirements:
 
@@ -487,7 +597,7 @@ Port run behavior with these requirements:
 - `status`, `result`, and `cancel` operate on durable job metadata.
 - Background stdout and stderr are stored under the job directory, not under the transient tmp directory.
 
-- [ ] **Step 3: Verify no routine system temp dependency**
+- [ ] **Step 4: Verify no routine system temp dependency**
 
 Run:
 
@@ -497,7 +607,7 @@ rg -n "TMPDIR|/tmp|opencode-prompts" plugins/opencode/scripts tests/opencode
 
 Expected: no runtime path uses system temp for plugin-controlled prompt or task files.
 
-- [ ] **Step 4: Run job lifecycle tests**
+- [ ] **Step 5: Run job lifecycle tests**
 
 Run:
 
@@ -507,7 +617,7 @@ npm test -- tests/opencode/run-cmd.test.mjs tests/opencode/status-cmd.test.mjs t
 
 Expected: all selected tests pass.
 
-- [ ] **Step 5: Commit Task 5**
+- [ ] **Step 6: Commit Task 5**
 
 Run:
 
@@ -520,27 +630,60 @@ git commit -m "feat: add opencode run job lifecycle"
 
 **Files:**
 - Create: `plugins/opencode/hooks.json`
+- Create: `plugins/opencode/hooks/session-start.mjs`
+- Create: `plugins/opencode/hooks/session-end.mjs`
 - Create: `plugins/opencode/scripts/stop-review-gate-hook.mjs`
 - Modify: `plugins/opencode/scripts/buddy.mjs`
 - Create or modify tests under `tests/opencode/`
 - Modify: `docs/specs/001-opencode-plugin.md`
 
-- [ ] **Step 1: Copy hook files and tests**
+- [ ] **Step 1: Verify hook source files and tests**
 
 Run:
 
 ```bash
+test -f /home/chris/workshop/claudecode-buddy/plugins/opencode/hooks/hooks.json
+test -f /home/chris/workshop/claudecode-buddy/plugins/opencode/hooks/session-start.mjs
+test -f /home/chris/workshop/claudecode-buddy/plugins/opencode/hooks/session-end.mjs
+test -f /home/chris/workshop/claudecode-buddy/plugins/opencode/scripts/stop-review-gate-hook.mjs
+test -f /home/chris/workshop/claudecode-buddy/tests/opencode/gate-cmd.test.mjs
+test -f /home/chris/workshop/claudecode-buddy/tests/opencode/hooks.test.mjs
+test -f /home/chris/workshop/claudecode-buddy/tests/opencode/stop-gate.test.mjs
+```
+
+Expected: all commands exit 0.
+
+- [ ] **Step 2: Copy hook files and tests**
+
+Run:
+
+```bash
+mkdir -p plugins/opencode/hooks
 cp /home/chris/workshop/claudecode-buddy/plugins/opencode/hooks/hooks.json plugins/opencode/hooks.json
+cp /home/chris/workshop/claudecode-buddy/plugins/opencode/hooks/session-start.mjs plugins/opencode/hooks/session-start.mjs
+cp /home/chris/workshop/claudecode-buddy/plugins/opencode/hooks/session-end.mjs plugins/opencode/hooks/session-end.mjs
 cp /home/chris/workshop/claudecode-buddy/plugins/opencode/scripts/stop-review-gate-hook.mjs plugins/opencode/scripts/stop-review-gate-hook.mjs
 cp /home/chris/workshop/claudecode-buddy/tests/opencode/{gate-cmd,hooks,stop-gate}.test.mjs tests/opencode/
 ```
 
-- [ ] **Step 2: Adapt hook configuration**
+- [ ] **Step 3: Adapt hook configuration**
 
 Edit `plugins/opencode/hooks.json` to match verified Codex hook conventions.
-If the verified Codex hook events do not match the source plugin's session lifecycle, keep the hook file conservative and document the host limitation in `docs/specs/001-opencode-plugin.md`.
+If Task 1 verifies Codex event names and a plugin-root variable, use only those verified names and update commands away from `CLAUDE_PLUGIN_ROOT`.
 
-- [ ] **Step 3: Run hook tests**
+If Task 1 does not verify Codex hook event names or a plugin-root variable, make the hook file conservative:
+
+```json
+{
+  "description": "opencode runtime hooks are available, but active Codex hook events are disabled until the host event contract is verified.",
+  "hooks": {}
+}
+```
+
+In that conservative path, keep `plugins/opencode/hooks/session-start.mjs`, `plugins/opencode/hooks/session-end.mjs`, and `plugins/opencode/scripts/stop-review-gate-hook.mjs` as directly testable runtime helpers, and document active hook installation as a host limitation in `docs/specs/001-opencode-plugin.md`.
+The copied `session-start.mjs` and `session-end.mjs` must replace `CLAUDE_PROJECT_DIR` with the verified Codex project directory variable if one exists, otherwise fall back to `input?.cwd ?? process.cwd()`.
+
+- [ ] **Step 4: Run hook tests**
 
 Run:
 
@@ -550,12 +693,12 @@ npm test -- tests/opencode/gate-cmd.test.mjs tests/opencode/hooks.test.mjs tests
 
 Expected: all selected tests pass, or hook host limitations are documented with tests proving the runtime pieces still work.
 
-- [ ] **Step 4: Commit Task 6**
+- [ ] **Step 5: Commit Task 6**
 
 Run:
 
 ```bash
-git add plugins/opencode/hooks.json plugins/opencode/scripts plugins/opencode/scripts/stop-review-gate-hook.mjs tests/opencode docs/specs/001-opencode-plugin.md
+git add plugins/opencode/hooks.json plugins/opencode/hooks plugins/opencode/scripts plugins/opencode/scripts/stop-review-gate-hook.mjs tests/opencode docs/specs/001-opencode-plugin.md
 git commit -m "feat: add opencode review gate hooks"
 ```
 
@@ -566,6 +709,8 @@ git commit -m "feat: add opencode review gate hooks"
 - Modify: `plugins/opencode/README.md`
 - Modify: `docs/specs/001-opencode-plugin.md`
 - Modify: `docs/plans/001-opencode-plugin-parity.md`
+- Modify: `docs/architecture/decisions.md`
+- Modify: `docs/architecture/decisions.md`
 
 - [ ] **Step 1: Update root README**
 
@@ -607,9 +752,23 @@ rg -n "TB[D]|TO[D]O|place[h]older|may ne[e]d|ma[y]be|uncl[e]ar" README.md plugin
 rg -n "\\.claudecode-budd[y]|\\.claude-plugi[n]|CLAUDE_PLUGIN_ROO[T]|\\$TMPDIR/opencode-prompt[s]|/tmp/opencode-prompt[s]|deeps[e]ek/|volcengine-pla[n]/|kimi-k2\\.[5]" README.md plugins/opencode docs/specs/001-opencode-plugin.md
 ```
 
-Expected: both commands exit 1 with no matches, except source-compatibility notes in plan prose that explicitly explain rejected source behavior.
+Expected: both commands exit 1 with no matches.
 
-- [ ] **Step 5: Run optional live opencode smoke tests**
+- [ ] **Step 5: Check architecture decisions and backlog**
+
+Run:
+
+```bash
+ls docs
+test -f docs/architecture/decisions.md
+```
+
+Expected: `docs/architecture/decisions.md` exists.
+
+If implementation introduced lasting decisions not already recorded, append them to `docs/architecture/decisions.md` with a link to `docs/specs/001-opencode-plugin.md` or this plan.
+If a project backlog file exists under `docs/` or the repository root, update it with unresolved follow-up work such as `/claudecode:*` command support.
+
+- [ ] **Step 6: Run optional live opencode smoke tests**
 
 Run only when the user confirms live CLI smoke tests for this plan:
 
@@ -619,7 +778,19 @@ OPENCODE_E2E=1 npm test -- tests/opencode/e2e.test.mjs
 
 Expected: live tests pass when opencode credentials and models are configured.
 
-- [ ] **Step 6: Add post-execution report**
+- [ ] **Step 7: Run code review gate**
+
+After implementation, full tests, and docs audits pass, dispatch the workflow code review gate:
+
+- Codex self-review
+- raw `opencode-go/deepseek-v4-flash`
+- raw `opencode-go/glm-5.1`
+- raw `opencode-go/kimi-k2.6`
+
+Record material findings and resolutions in this plan's `## Code Review` section using `docs/code-review.md`.
+Do not ship while blocker findings remain open.
+
+- [ ] **Step 8: Add post-execution report**
 
 Append `## Post-Execution Report` to this plan with:
 
@@ -629,12 +800,12 @@ Append `## Post-Execution Report` to this plan with:
 - deviations from plan
 - follow-up work
 
-- [ ] **Step 7: Commit Task 7**
+- [ ] **Step 9: Commit Task 7**
 
 Run:
 
 ```bash
-git add README.md plugins/opencode docs/specs/001-opencode-plugin.md docs/plans/001-opencode-plugin-parity.md
+git add README.md plugins/opencode docs/specs/001-opencode-plugin.md docs/architecture/decisions.md docs/plans/001-opencode-plugin-parity.md
 git commit -m "docs: document opencode plugin parity"
 ```
 
@@ -644,6 +815,10 @@ git commit -m "docs: document opencode plugin parity"
 - Host-surface realism: The plan verifies Codex command and agent support before claiming command or agent parity.
 - Temp-file policy: The plan replaces `${TMPDIR:-/tmp}/opencode-prompts` with `.codex-buddy/opencode/tmp/` and tests that plugin-controlled prompt/task files stay project-local.
 - Testing: Each implementation task ports or adds focused `node:test` coverage before committing.
+- Naming conflicts: The plugin uses `opencode` for the Codex plugin name and `.codex-buddy/opencode/` for project state, avoiding the source plugin's `.claudecode-buddy` and `.claude-plugin` names.
+- Stale references: Plan audits reject `deeps[e]ek/`, `volcengine-pla[n]/`, `kimi-k2.[5]`, `.claudecode-buddy`, `.claude-plugin`, and source `/tmp/opencode-prompts` runtime references in shipped plugin files.
+- Blast radius: The implementation is scoped to new plugin files, test harness files, and numbered docs; it does not change global Codex configuration or source `claudecode-buddy` files.
+- Edge cases: The plan covers missing source files, unverified Codex host surfaces, path traversal for prompt and task files, stale transient directory pruning, background job durability, and live CLI smoke tests gated by explicit user confirmation.
 
 ## Plan Review
 
@@ -655,3 +830,34 @@ Plan review must use the gate in `docs/development-workflow.md` before implement
 - `opencode-go/kimi-k2.6`
 
 Record reviewer findings and resolutions below before beginning Task 1.
+
+### Round 1
+
+- Codex self-review: `needs-attention`
+  - Fixed non-existent `git[.]test.mjs` copy reference.
+  - Added missing `tests/opencode/helpers.mjs`.
+  - Corrected live e2e env var to `OPENCODE_E2E=1`.
+  - Fixed nested Markdown fences for generated README and skill content.
+- DeepSeek planning review (`opencode-go/deepseek-v4-pro`): `needs-attention`
+  - Blocker: empty Plan Review section. Resolution: record Round 1 findings here and re-dispatch after revisions.
+  - Blocker: hook event conventions were not verified before Task 6. Resolution: Task 1 now verifies hook and skill surfaces; Task 6 has a conservative no-active-hooks output if host events remain unverified.
+  - Incorrect command: scaffold JSON validation used `require` under an ESM package. Resolution: Task 2 now uses `node --input-type=module` with `import fs`.
+  - Source paths assumed. Resolution: Tasks 1, 3, 4, 5, and 6 now include source file preflight checks.
+- GLM planning review (`opencode-go/glm-5.1`): `needs-attention`
+  - Blocker: temp-path transformation was underspecified. Resolution: Task 3 now names concrete functions, call sites, error-message replacements, and affected tests.
+  - Blocker: hook adaptation was vague and omitted session hook files. Resolution: Task 6 now copies session hook helpers and defines the conservative `hooks: {}` fallback.
+  - Missing test: `prompt-cmd.test.mjs` was not copied. Resolution: Task 3 now copies and runs it.
+  - Missing architecture decision/backlog check. Resolution: Task 7 now checks `docs/architecture/decisions.md` and backlog files.
+- Kimi planning review (`opencode-go/kimi-k2.6`): `needs-attention`
+  - Missing code review phase. Resolution: Task 7 now includes the code review gate and `## Code Review` recording requirement.
+  - Missing reviewed-plan commit before implementation. Resolution: this revised plan will be committed after reviewer approval and before Task 1 begins.
+  - Brittle test glob. Resolution: `package.json` now uses `node --test tests/opencode`.
+  - Vague `.gitignore` update. Resolution: Task 2 now includes concrete `grep -qxF` append commands.
+
+### Round 2
+
+Pending re-review for DeepSeek, GLM, and Kimi after Round 1 revisions.
+
+## Code Review
+
+Implementation code review findings will be recorded here after Task 7 verification and before shipping.
