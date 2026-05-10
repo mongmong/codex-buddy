@@ -55,7 +55,8 @@ plugins/opencode/
 `docs/specs/000-codex-plugin-surface-research.md` is authoritative for the Codex plugin surfaces verified during Phase 0.
 Commands and agents are locally verified through installed plugin examples.
 Command files live under plugin-level `commands/` directories and agent definitions live under plugin-level `agents/` directories.
-Hook configuration is verified through plugin-root `hooks.json`, but only `PostToolUse` has local event evidence; Claude Code lifecycle events such as `SessionStart`, `SessionEnd`, and `Stop` remain unverified for Codex.
+Hook configuration is verified through plugin-root `hooks.json`, but only `PostToolUse` has local event evidence; lifecycle events such as `SessionStart`, `SessionEnd`, and `Stop` remain unverified for Codex.
+For now, `plugins/opencode/hooks.json` intentionally keeps active hooks disabled while shipping directly testable hook helper scripts.
 
 ## Runtime State
 

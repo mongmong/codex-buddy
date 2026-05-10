@@ -1,0 +1,4 @@
+{
+  "description": "opencode runtime hooks are available, but active Codex lifecycle hook events are disabled until the host event contract is verified.",
+  "hooks": {}
+}

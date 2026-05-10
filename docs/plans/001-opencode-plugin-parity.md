@@ -703,7 +703,7 @@ git commit -m "feat: add opencode run job lifecycle"
 - Create or modify tests under `tests/opencode/`
 - Modify: `docs/specs/001-opencode-plugin.md`
 
-- [ ] **Step 1: Verify hook source files and tests**
+- [x] **Step 1: Verify hook source files and tests**
 
 Run:
 
@@ -720,7 +720,7 @@ test -f /home/chris/workshop/claudecode-buddy/tests/opencode/stop-gate.test.mjs
 
 Expected: all commands exit 0.
 
-- [ ] **Step 2: Copy hook files and tests**
+- [x] **Step 2: Copy hook files and tests**
 
 Run:
 
@@ -734,7 +734,7 @@ cp /home/chris/workshop/claudecode-buddy/plugins/opencode/commands/gate.md plugi
 cp /home/chris/workshop/claudecode-buddy/tests/opencode/{gate-cmd,hooks,stop-gate}.test.mjs tests/opencode/
 ```
 
-- [ ] **Step 3: Adapt hook configuration**
+- [x] **Step 3: Adapt hook configuration**
 
 Edit `plugins/opencode/hooks.json` to match verified Codex hook conventions.
 If Task 1 verifies Codex event names and a plugin-root variable, use only those verified names and update commands away from `CLAUDE_PLUGIN_ROOT`.
@@ -760,7 +760,7 @@ rg -n "CLAUDE_PROJECT_DIR|\\.claudecode-buddy" plugins/opencode/hooks plugins/op
 
 Expected: exit 1 with no matches.
 
-- [ ] **Step 4: Run hook tests**
+- [x] **Step 4: Run hook tests**
 
 Run:
 
@@ -770,7 +770,7 @@ npm test -- tests/opencode/gate-cmd.test.mjs tests/opencode/hooks.test.mjs tests
 
 Expected: all selected tests pass, or hook host limitations are documented with tests proving the runtime pieces still work.
 
-- [ ] **Step 5: Commit Task 6**
+- [x] **Step 5: Commit Task 6**
 
 Run:
 
