@@ -64,6 +64,7 @@ Create:
 - `plugins/opencode/scripts/lib/supervisor.mjs`
 - `plugins/opencode/scripts/lib/trailer.mjs`
 - `tests/opencode/helpers.mjs`
+- `tests/opencode/fixtures/*.mjs`
 - `tests/opencode/*.test.mjs`
 
 Modify:
@@ -73,7 +74,28 @@ Modify:
 - `README.md`
 - `docs/specs/000-codex-plugin-surface-research.md`
 - `docs/specs/001-opencode-plugin.md`
+- `docs/architecture/decisions.md`
 - `docs/plans/001-opencode-plugin-parity.md`
+
+## Pre-Implementation Gate
+
+Do not begin Task 1 until all Plan Review Round 2 reviewers approve or all remaining blockers are resolved and re-reviewed.
+
+- [ ] **Step 1: Confirm plan review approval**
+
+Verify the `## Plan Review` section records Codex self-review plus DeepSeek, GLM, and Kimi verdicts.
+
+- [ ] **Step 2: Commit the reviewed plan**
+
+Run:
+
+```bash
+git add docs/plans/001-opencode-plugin-parity.md
+git commit -m "docs: approve opencode plugin parity plan"
+```
+
+Expected: a reviewed-plan commit exists immediately before implementation begins.
+If the plan review section is already committed and `git status --short` is clean, record that commit SHA in the implementation notes before starting Task 1.
 
 ## Task 1: Verify Codex Plugin Surfaces
 
@@ -368,6 +390,7 @@ test -f /home/chris/workshop/claudecode-buddy/plugins/opencode/scripts/buddy.mjs
 test -f /home/chris/workshop/claudecode-buddy/plugins/opencode/scripts/lib/config.mjs
 test -f /home/chris/workshop/claudecode-buddy/plugins/opencode/scripts/lib/jobs.mjs
 test -f /home/chris/workshop/claudecode-buddy/tests/opencode/helpers.mjs
+test -d /home/chris/workshop/claudecode-buddy/tests/opencode/fixtures
 test -f /home/chris/workshop/claudecode-buddy/tests/opencode/prompt-cmd.test.mjs
 ```
 
@@ -385,6 +408,7 @@ cp /home/chris/workshop/claudecode-buddy/plugins/opencode/scripts/lib/*.mjs plug
 cp /home/chris/workshop/claudecode-buddy/plugins/opencode/prompts/*.md plugins/opencode/prompts/
 cp /home/chris/workshop/claudecode-buddy/plugins/opencode/schemas/*.json plugins/opencode/schemas/
 cp /home/chris/workshop/claudecode-buddy/tests/opencode/helpers.mjs tests/opencode/helpers.mjs
+cp -R /home/chris/workshop/claudecode-buddy/tests/opencode/fixtures tests/opencode/fixtures
 cp /home/chris/workshop/claudecode-buddy/tests/opencode/{args,cli-detection,config-detection,config,invoke,jobs,list-models,prompt,prompt-cmd,review-dispatch,scope,session-capture,sessions,trailer}.test.mjs tests/opencode/
 ```
 
@@ -394,15 +418,26 @@ The repository is expected to be in an unadapted intermediate state after this c
 - [ ] **Step 3: Replace state directory names**
 
 In runtime and tests, replace `.claudecode-buddy` with `.codex-buddy`.
+Replace source `CLAUDE_PROJECT_DIR` handling in copied runtime and tests with Codex-local project resolution:
+
+```javascript
+function projectDirFromEnv(cwd = process.cwd()) {
+  return process.env.CODEX_PROJECT_DIR ?? cwd;
+}
+```
+
+Use `projectDirFromEnv(cwd)` at the copied `buddy.mjs` project-dir call sites.
+In tests, pass `CODEX_PROJECT_DIR` instead of `CLAUDE_PROJECT_DIR`.
 Keep source repo references in docs untouched.
 
 Run:
 
 ```bash
 rg -n "\\.claudecode-buddy" plugins/opencode tests/opencode
+rg -n "CLAUDE_PROJECT_DIR" plugins/opencode tests/opencode
 ```
 
-Expected after edits: no matches.
+Expected after edits: both commands exit 1 with no matches.
 
 - [ ] **Step 4: Replace system temp prompt handling**
 
@@ -429,7 +464,7 @@ function tmpRoot(projectDir) {
 ```
 
 Update `isUnderAllowedDir`, `readTaskFileFdBound`, `parsePromptArgs`, and `parseRunArgs` call sites to pass the detected project directory into path validation.
-Update `tests/opencode/prompt-cmd.test.mjs` and `tests/opencode/run-cmd.test.mjs` so allowed files are created under `<repoDir>/.codex-buddy/opencode/tmp/` instead of `${TMPDIR}/opencode-prompts/`.
+Update `tests/opencode/prompt-cmd.test.mjs` so allowed files are created under `<repoDir>/.codex-buddy/opencode/tmp/` instead of `${TMPDIR}/opencode-prompts/`.
 
 Run:
 
@@ -596,6 +631,8 @@ Port run behavior with these requirements:
 - `run --background` creates durable job metadata under `.codex-buddy/opencode/jobs/`.
 - `status`, `result`, and `cancel` operate on durable job metadata.
 - Background stdout and stderr are stored under the job directory, not under the transient tmp directory.
+- `tests/opencode/run-cmd.test.mjs` creates allowed task files under `<repoDir>/.codex-buddy/opencode/tmp/` instead of `${TMPDIR}/opencode-prompts/`.
+- `tests/opencode/run-cmd.test.mjs`, `status-cmd.test.mjs`, `result-cmd.test.mjs`, and `cancel-cmd.test.mjs` pass `CODEX_PROJECT_DIR` instead of `CLAUDE_PROJECT_DIR`.
 
 - [ ] **Step 4: Verify no routine system temp dependency**
 
@@ -681,7 +718,16 @@ If Task 1 does not verify Codex hook event names or a plugin-root variable, make
 ```
 
 In that conservative path, keep `plugins/opencode/hooks/session-start.mjs`, `plugins/opencode/hooks/session-end.mjs`, and `plugins/opencode/scripts/stop-review-gate-hook.mjs` as directly testable runtime helpers, and document active hook installation as a host limitation in `docs/specs/001-opencode-plugin.md`.
-The copied `session-start.mjs` and `session-end.mjs` must replace `CLAUDE_PROJECT_DIR` with the verified Codex project directory variable if one exists, otherwise fall back to `input?.cwd ?? process.cwd()`.
+The copied `session-start.mjs`, `session-end.mjs`, and `stop-review-gate-hook.mjs` must replace `CLAUDE_PROJECT_DIR` with `CODEX_PROJECT_DIR` fallback handling.
+The stop hook must also replace `.claudecode-buddy/` self-edit checks and messages with `.codex-buddy/`.
+
+Run:
+
+```bash
+rg -n "CLAUDE_PROJECT_DIR|\\.claudecode-buddy" plugins/opencode/hooks plugins/opencode/scripts/stop-review-gate-hook.mjs tests/opencode/hooks.test.mjs tests/opencode/stop-gate.test.mjs
+```
+
+Expected: exit 1 with no matches.
 
 - [ ] **Step 4: Run hook tests**
 
@@ -856,7 +902,22 @@ Record reviewer findings and resolutions below before beginning Task 1.
 
 ### Round 2
 
-Pending re-review for DeepSeek, GLM, and Kimi after Round 1 revisions.
+- DeepSeek planning review (`opencode-go/deepseek-v4-pro`): `needs-attention`
+  - Prior blockers were resolved.
+  - New blocker: tests require `tests/opencode/fixtures/*.mjs`, but the plan did not copy fixtures. Resolution: Task 3 now preflights and copies the fixtures directory.
+  - Concern: `CLAUDE_PROJECT_DIR` remained implicit in `buddy.mjs`. Resolution: Task 3 now replaces copied runtime/tests with `CODEX_PROJECT_DIR` handling.
+  - Concern: `stop-review-gate-hook.mjs` had `.claudecode-buddy/` and `CLAUDE_PROJECT_DIR` references after Task 3's replacement pass. Resolution: Task 6 now explicitly replaces those hook references and verifies no matches remain.
+- GLM planning review (`opencode-go/glm-5.1`): `needs-attention`
+  - Prior blockers were resolved.
+  - New blocker: Task 3 referenced `run-cmd.test.mjs` before Task 5 copied it. Resolution: Task 3 now updates only `prompt-cmd.test.mjs`; Task 5 now updates `run-cmd.test.mjs` after copying it.
+- Kimi planning review (`opencode-go/kimi-k2.6`): `needs-attention`
+  - Prior blockers were mostly resolved.
+  - Remaining blocker: no explicit reviewed-plan commit step. Resolution: added `## Pre-Implementation Gate` with an explicit reviewed-plan commit step.
+  - Remaining blocker: same `run-cmd.test.mjs` sequencing issue reported by GLM. Resolution: moved the update instruction to Task 5.
+
+### Round 3
+
+Pending re-review for DeepSeek, GLM, and Kimi after Round 2 revisions.
 
 ## Code Review
 
