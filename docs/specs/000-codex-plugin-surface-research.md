@@ -12,6 +12,10 @@ It exists so `docs/specs/001-opencode-plugin.md` can distinguish implemented par
 - `/home/chris/.codex/.tmp/plugins/.agents/plugins/marketplace.json`
 - Installed plugin manifests such as `/home/chris/.codex/.tmp/plugins/plugins/linear/.codex-plugin/plugin.json` and `/home/chris/.codex/.tmp/plugins/plugins/codex-security/.codex-plugin/plugin.json`
 - Installed plugin directory examples under `/home/chris/.codex/.tmp/plugins/plugins/`
+- `/home/chris/.codex/.tmp/plugins/README.md`
+- Command examples such as `/home/chris/.codex/.tmp/plugins/plugins/vercel/commands/status.md`
+- Agent examples such as `/home/chris/.codex/.tmp/plugins/plugins/vercel/agents/ai-architect.md`
+- Hook examples such as `/home/chris/.codex/.tmp/plugins/plugins/figma/hooks.json`
 
 ## Confirmed Surfaces
 
@@ -33,17 +37,28 @@ Plugin order in the array is treated as render order.
 
 ### Optional Plugin Folders
 
-Codex plugin scaffolding supports optional `skills/`, `hooks/`, `scripts/`, `assets/`, `.mcp.json`, and `.app.json`.
-Installed examples confirm common use of `skills/`, `assets/`, `.app.json`, `.mcp.json`, `hooks.json`, and `scripts/`.
+Codex plugin scaffolding supports optional `skills/`, `agents/`, `commands/`, `hooks/`, `scripts/`, `assets/`, `.mcp.json`, and `.app.json`.
+Installed examples confirm common use of `skills/`, nested skill directories containing `SKILL.md`, `agents/`, `commands/`, `assets/`, `.app.json`, `.mcp.json`, `hooks.json`, and `scripts/`.
 
 ### Commands, Agents, And Hooks
 
-The local plugin creator references verify a `hooks` manifest field and generated hook configuration path support.
-Installed examples include `hooks.json`, which confirms hook configuration files are present in real plugins.
+Installed plugin examples verify plugin-level `commands/` and `agents/` directories.
+Command files are Markdown files with frontmatter, for example `/home/chris/.codex/.tmp/plugins/plugins/vercel/commands/status.md`.
+Agent files are Markdown files with frontmatter, for example `/home/chris/.codex/.tmp/plugins/plugins/vercel/agents/ai-architect.md`.
+Some plugin examples also include `agents/openai.yaml`, so agent metadata can include YAML alongside Markdown agent definitions.
 
-The local references do not verify a command manifest convention or an agent manifest convention for Codex plugins.
-The Phase 1 plugin plan must verify the Codex-native command and agent surfaces before implementing command parity with the Claude Code plugin.
-Until that verification happens, command and agent parity rows in `docs/specs/001-opencode-plugin.md` must be marked as planned with documented host limitation.
+The local plugin creator references verify a `hooks` manifest field and generated hook configuration path support.
+Installed examples include plugin-root `hooks.json`.
+The observed Figma hook example uses `PostToolUse` with a `matcher` and command hook entries.
+The local examples do not verify Claude Code lifecycle event names such as `SessionStart`, `SessionEnd`, or `Stop` for Codex plugins.
+
+This means command and agent parity can be implemented with Codex plugin files, while automatic lifecycle review gates must remain planned with documented host limitation until Codex lifecycle hook events are verified.
+
+### Skills
+
+The plugin manifest supports `"skills": "./skills/"`.
+Installed examples verify nested skill directories such as `skills/<skill-name>/SKILL.md`.
+The `opencode` plugin should use `plugins/opencode/skills/opencode-cli-runtime/SKILL.md`.
 
 ## Host Limitations
 

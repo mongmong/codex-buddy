@@ -53,8 +53,9 @@ plugins/opencode/
 ```
 
 `docs/specs/000-codex-plugin-surface-research.md` is authoritative for the Codex plugin surfaces verified during Phase 0.
-Commands and agents are not locally verified yet.
-The Phase 1 plugin plan must verify the Codex-native command and agent surfaces before implementing command parity.
+Commands and agents are locally verified through installed plugin examples.
+Command files live under plugin-level `commands/` directories and agent definitions live under plugin-level `agents/` directories.
+Hook configuration is verified through plugin-root `hooks.json`, but only `PostToolUse` has local event evidence; Claude Code lifecycle events such as `SessionStart`, `SessionEnd`, and `Stop` remain unverified for Codex.
 
 ## Runtime State
 
@@ -100,21 +101,21 @@ Runtime validation uses small handwritten validators until a plan justifies addi
 
 | Capability | Source Plugin Surface | Codex Status | Notes |
 |---|---|---|---|
-| Review | `/opencode:review`, review subagent | planned with documented host limitation | Command and agent surfaces require Phase 1 Codex host verification. |
-| Run | `/opencode:run`, run subagent | planned with documented host limitation | Write-capable delegation depends on verified Codex command or agent surfaces. |
-| Setup | `/opencode:setup` | planned with documented host limitation | Diagnostics are planned after command surface verification. |
-| Status | `/opencode:status` | planned with documented host limitation | Requires background job state. |
-| Result | `/opencode:result` | planned with documented host limitation | Requires background job state. |
-| Cancel | `/opencode:cancel` | planned with documented host limitation | Requires process tracking and background job state. |
-| Gate | end-of-session review gate | planned with documented host limitation | Hook feasibility must be verified against Codex hook support. |
-| Model selection | opencode config delegation | planned | Keep model selection delegated to opencode config. |
-| Variants | focused review prompts | planned | Prompt variants should be thin wrappers around the shared runtime. |
-| Adversarial style | challenge-oriented review | planned | Implement as a prompt style, not as a separate runtime path. |
-| Background jobs | job metadata and output files | planned | Use `.codex-buddy/opencode/jobs/` for durable state. |
-| Sessions | orphan detection and lifecycle notes | planned with documented host limitation | Depends on verified hook behavior. |
-| Hooks | hook config | planned with documented host limitation | `hooks.json` exists in installed plugin examples, but specific events need implementation-time verification. |
-| Trailer parsing | Markdown plus JSON trailer | planned | Use handwritten validation first. |
-| Temp handling | project-local transient storage | planned | Use `.codex-buddy/opencode/tmp/`, never routine system temp files. |
+| Review | `/opencode:review`, review subagent | implemented | Implement with `commands/review.md`, `agents/opencode-review.md`, and shared runtime dispatch. |
+| Run | `/opencode:run`, run subagent | implemented | Implement with `commands/run.md`, `agents/opencode-run.md`, and shared runtime dispatch. |
+| Setup | `/opencode:setup` | implemented | Implement with `commands/setup.md` and runtime diagnostics. |
+| Status | `/opencode:status` | implemented | Implement with `commands/status.md` and durable background job state. |
+| Result | `/opencode:result` | implemented | Implement with `commands/result.md` and durable background job output. |
+| Cancel | `/opencode:cancel` | implemented | Implement with `commands/cancel.md`, process tracking, and background job state. |
+| Gate | end-of-session review gate | planned with documented host limitation | Manual gate command can be implemented, but automatic Stop-hook parity waits for verified Codex lifecycle hook events. |
+| Model selection | opencode config delegation | implemented | Keep model selection delegated to opencode config. |
+| Variants | focused review prompts | implemented | Prompt variants are thin wrappers around the shared runtime. |
+| Adversarial style | challenge-oriented review | implemented | Implement as a prompt style, not as a separate runtime path. |
+| Background jobs | job metadata and output files | implemented | Use `.codex-buddy/opencode/jobs/` for durable state. |
+| Sessions | orphan detection and lifecycle notes | planned with documented host limitation | Depends on verified session lifecycle hook behavior. |
+| Hooks | hook config | planned with documented host limitation | `hooks.json` and `PostToolUse` exist in installed plugin examples, but source lifecycle events need host verification. |
+| Trailer parsing | Markdown plus JSON trailer | implemented | Use handwritten validation first. |
+| Temp handling | project-local transient storage | implemented | Use `.codex-buddy/opencode/tmp/`, never routine system temp files. |
 
 ## Future Work
 

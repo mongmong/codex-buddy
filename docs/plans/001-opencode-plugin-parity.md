@@ -42,6 +42,15 @@ Create:
 - `plugins/opencode/hooks.json`
 - `plugins/opencode/hooks/session-start.mjs`
 - `plugins/opencode/hooks/session-end.mjs`
+- `plugins/opencode/agents/opencode-review.md`
+- `plugins/opencode/agents/opencode-run.md`
+- `plugins/opencode/commands/review.md`
+- `plugins/opencode/commands/run.md`
+- `plugins/opencode/commands/setup.md`
+- `plugins/opencode/commands/status.md`
+- `plugins/opencode/commands/result.md`
+- `plugins/opencode/commands/cancel.md`
+- `plugins/opencode/commands/gate.md`
 - `plugins/opencode/skills/opencode-cli-runtime/SKILL.md`
 - `plugins/opencode/prompts/adversarial-review.md`
 - `plugins/opencode/prompts/stop-review-gate.md`
@@ -188,6 +197,7 @@ This implementation ships runtime gate support but does not install active lifec
 
 For skills, verify whether nested `skills/<name>/SKILL.md` is supported by the plugin manifest reference.
 If it is not supported, update this plan before Task 4 to use the verified skill layout.
+If command and agent directories are verified, keep the command and agent copy steps in Tasks 4, 5, and 6 active.
 
 - [ ] **Step 5: Update the capability matrix**
 
@@ -500,6 +510,9 @@ git commit -m "feat: port opencode runtime core"
 - Modify: `plugins/opencode/scripts/lib/prompt.mjs`
 - Modify: `plugins/opencode/scripts/lib/review-dispatch.mjs`
 - Modify: `plugins/opencode/scripts/lib/scope.mjs`
+- Create: `plugins/opencode/agents/opencode-review.md`
+- Create: `plugins/opencode/commands/review.md`
+- Create: `plugins/opencode/commands/setup.md`
 - Create or modify review/setup tests under `tests/opencode/`
 - Create: `plugins/opencode/skills/opencode-cli-runtime/SKILL.md`
 
@@ -512,6 +525,9 @@ test -f /home/chris/workshop/claudecode-buddy/tests/opencode/review-cmd.test.mjs
 test -f /home/chris/workshop/claudecode-buddy/tests/opencode/setup-cmd.test.mjs
 test -f /home/chris/workshop/claudecode-buddy/tests/opencode/models-cmd.test.mjs
 test -f /home/chris/workshop/claudecode-buddy/tests/opencode/variant.test.mjs
+test -f /home/chris/workshop/claudecode-buddy/plugins/opencode/agents/opencode-review.md
+test -f /home/chris/workshop/claudecode-buddy/plugins/opencode/commands/review.md
+test -f /home/chris/workshop/claudecode-buddy/plugins/opencode/commands/setup.md
 ```
 
 Expected: all commands exit 0.
@@ -521,6 +537,9 @@ Expected: all commands exit 0.
 Run:
 
 ```bash
+mkdir -p plugins/opencode/agents plugins/opencode/commands
+cp /home/chris/workshop/claudecode-buddy/plugins/opencode/agents/opencode-review.md plugins/opencode/agents/opencode-review.md
+cp /home/chris/workshop/claudecode-buddy/plugins/opencode/commands/{review,setup}.md plugins/opencode/commands/
 cp /home/chris/workshop/claudecode-buddy/tests/opencode/{review-cmd,setup-cmd,models-cmd,variant}.test.mjs tests/opencode/
 ```
 
@@ -533,6 +552,7 @@ Edit prompt builders so review prompts reference:
 - `docs/architecture/decisions.md`
 
 They must not reference Claude-only command names except in source-compatibility notes.
+Edit copied command and agent files so examples use Codex command names and direct runtime invocations where necessary.
 
 - [ ] **Step 4: Add skill-backed runtime instructions**
 
@@ -587,7 +607,7 @@ Expected: all selected tests pass.
 Run:
 
 ```bash
-git add plugins/opencode/scripts plugins/opencode/skills tests/opencode
+git add plugins/opencode/scripts plugins/opencode/skills plugins/opencode/agents plugins/opencode/commands tests/opencode
 git commit -m "feat: add opencode review setup workflows"
 ```
 
@@ -598,6 +618,11 @@ git commit -m "feat: add opencode review setup workflows"
 - Modify: `plugins/opencode/scripts/lib/invoke.mjs`
 - Modify: `plugins/opencode/scripts/lib/jobs.mjs`
 - Modify: `plugins/opencode/scripts/lib/supervisor.mjs`
+- Create: `plugins/opencode/agents/opencode-run.md`
+- Create: `plugins/opencode/commands/run.md`
+- Create: `plugins/opencode/commands/status.md`
+- Create: `plugins/opencode/commands/result.md`
+- Create: `plugins/opencode/commands/cancel.md`
 - Create or modify tests under `tests/opencode/`
 
 - [ ] **Step 1: Verify job lifecycle source tests**
@@ -610,6 +635,11 @@ test -f /home/chris/workshop/claudecode-buddy/tests/opencode/status-cmd.test.mjs
 test -f /home/chris/workshop/claudecode-buddy/tests/opencode/result-cmd.test.mjs
 test -f /home/chris/workshop/claudecode-buddy/tests/opencode/cancel-cmd.test.mjs
 test -f /home/chris/workshop/claudecode-buddy/tests/opencode/e2e.test.mjs
+test -f /home/chris/workshop/claudecode-buddy/plugins/opencode/agents/opencode-run.md
+test -f /home/chris/workshop/claudecode-buddy/plugins/opencode/commands/run.md
+test -f /home/chris/workshop/claudecode-buddy/plugins/opencode/commands/status.md
+test -f /home/chris/workshop/claudecode-buddy/plugins/opencode/commands/result.md
+test -f /home/chris/workshop/claudecode-buddy/plugins/opencode/commands/cancel.md
 ```
 
 Expected: all commands exit 0.
@@ -619,6 +649,8 @@ Expected: all commands exit 0.
 Run:
 
 ```bash
+cp /home/chris/workshop/claudecode-buddy/plugins/opencode/agents/opencode-run.md plugins/opencode/agents/opencode-run.md
+cp /home/chris/workshop/claudecode-buddy/plugins/opencode/commands/{run,status,result,cancel}.md plugins/opencode/commands/
 cp /home/chris/workshop/claudecode-buddy/tests/opencode/{run-cmd,status-cmd,result-cmd,cancel-cmd,e2e}.test.mjs tests/opencode/
 ```
 
@@ -633,6 +665,7 @@ Port run behavior with these requirements:
 - Background stdout and stderr are stored under the job directory, not under the transient tmp directory.
 - `tests/opencode/run-cmd.test.mjs` creates allowed task files under `<repoDir>/.codex-buddy/opencode/tmp/` instead of `${TMPDIR}/opencode-prompts/`.
 - `tests/opencode/run-cmd.test.mjs`, `status-cmd.test.mjs`, `result-cmd.test.mjs`, and `cancel-cmd.test.mjs` pass `CODEX_PROJECT_DIR` instead of `CLAUDE_PROJECT_DIR`.
+- Copied `run`, `status`, `result`, and `cancel` command docs call `node plugins/opencode/scripts/buddy.mjs <subcommand>` and do not reference Claude-only variables.
 
 - [ ] **Step 4: Verify no routine system temp dependency**
 
@@ -659,7 +692,7 @@ Expected: all selected tests pass.
 Run:
 
 ```bash
-git add plugins/opencode/scripts tests/opencode
+git add plugins/opencode/scripts plugins/opencode/agents plugins/opencode/commands tests/opencode
 git commit -m "feat: add opencode run job lifecycle"
 ```
 
@@ -670,6 +703,7 @@ git commit -m "feat: add opencode run job lifecycle"
 - Create: `plugins/opencode/hooks/session-start.mjs`
 - Create: `plugins/opencode/hooks/session-end.mjs`
 - Create: `plugins/opencode/scripts/stop-review-gate-hook.mjs`
+- Create: `plugins/opencode/commands/gate.md`
 - Modify: `plugins/opencode/scripts/buddy.mjs`
 - Create or modify tests under `tests/opencode/`
 - Modify: `docs/specs/001-opencode-plugin.md`
@@ -683,6 +717,7 @@ test -f /home/chris/workshop/claudecode-buddy/plugins/opencode/hooks/hooks.json
 test -f /home/chris/workshop/claudecode-buddy/plugins/opencode/hooks/session-start.mjs
 test -f /home/chris/workshop/claudecode-buddy/plugins/opencode/hooks/session-end.mjs
 test -f /home/chris/workshop/claudecode-buddy/plugins/opencode/scripts/stop-review-gate-hook.mjs
+test -f /home/chris/workshop/claudecode-buddy/plugins/opencode/commands/gate.md
 test -f /home/chris/workshop/claudecode-buddy/tests/opencode/gate-cmd.test.mjs
 test -f /home/chris/workshop/claudecode-buddy/tests/opencode/hooks.test.mjs
 test -f /home/chris/workshop/claudecode-buddy/tests/opencode/stop-gate.test.mjs
@@ -700,6 +735,7 @@ cp /home/chris/workshop/claudecode-buddy/plugins/opencode/hooks/hooks.json plugi
 cp /home/chris/workshop/claudecode-buddy/plugins/opencode/hooks/session-start.mjs plugins/opencode/hooks/session-start.mjs
 cp /home/chris/workshop/claudecode-buddy/plugins/opencode/hooks/session-end.mjs plugins/opencode/hooks/session-end.mjs
 cp /home/chris/workshop/claudecode-buddy/plugins/opencode/scripts/stop-review-gate-hook.mjs plugins/opencode/scripts/stop-review-gate-hook.mjs
+cp /home/chris/workshop/claudecode-buddy/plugins/opencode/commands/gate.md plugins/opencode/commands/gate.md
 cp /home/chris/workshop/claudecode-buddy/tests/opencode/{gate-cmd,hooks,stop-gate}.test.mjs tests/opencode/
 ```
 
@@ -744,7 +780,7 @@ Expected: all selected tests pass, or hook host limitations are documented with 
 Run:
 
 ```bash
-git add plugins/opencode/hooks.json plugins/opencode/hooks plugins/opencode/scripts plugins/opencode/scripts/stop-review-gate-hook.mjs tests/opencode docs/specs/001-opencode-plugin.md
+git add plugins/opencode/hooks.json plugins/opencode/hooks plugins/opencode/scripts plugins/opencode/scripts/stop-review-gate-hook.mjs plugins/opencode/commands tests/opencode docs/specs/001-opencode-plugin.md
 git commit -m "feat: add opencode review gate hooks"
 ```
 
