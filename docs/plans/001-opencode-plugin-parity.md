@@ -917,7 +917,15 @@ Record reviewer findings and resolutions below before beginning Task 1.
 
 ### Round 3
 
-Pending re-review for DeepSeek, GLM, and Kimi after Round 2 revisions.
+- DeepSeek planning review (`opencode-go/deepseek-v4-pro`): `approve`
+  - Verified fixture copy, `CODEX_PROJECT_DIR` replacement instructions, and stop hook stale-reference cleanup.
+  - No new blockers found.
+- GLM planning review (`opencode-go/glm-5.1`): `approve`
+  - Verified `run-cmd.test.mjs` updates moved to Task 5 after the file is copied.
+  - No new blockers found.
+- Kimi planning review (`opencode-go/kimi-k2.6`): `approve`
+  - Verified reviewed-plan commit gate and `run-cmd.test.mjs` sequencing.
+  - No new blockers found.
 
 ## Code Review
 
