@@ -40,7 +40,7 @@ Write a concrete execution plan with phases, files, tests, and verification step
 
 1. Read `docs/architecture/decisions.md` if it exists.
 2. Read existing plans in `docs/plans/` for reusable patterns and conventions.
-3. Read `TODO.md` if it exists for relevant outstanding work.
+3. Read the project backlog file if one exists for relevant outstanding work.
 4. Write a detailed plan with phases, file lists, testing or verification per phase, and final verification steps.
 5. Self-review the plan for inconsistencies, missing files, stale references, blast radius, naming conflicts, and edge cases.
 6. Save the plan to `docs/plans/` with the next sequential number.
@@ -115,7 +115,7 @@ Each material finding is recorded in the plan file's `## Code Review` section us
 All open blocker findings must be resolved before shipping.
 
 When acting on review feedback, evaluate each finding rigorously before implementing it.
-If a finding is unclear or technically questionable, document the reasoning instead of applying it blindly.
+If a finding is ambiguous or technically questionable, document the reasoning instead of applying it blindly.
 
 ## Step 6 — Ship
 
@@ -123,7 +123,7 @@ Wrap up the branch.
 
 1. Update the plan file with a post-execution report: implementation details, deviations from plan, verification results, known limitations, and follow-up work.
 2. Update `docs/architecture/decisions.md` if new lasting decisions were made.
-3. Update `TODO.md` if it exists.
+3. Update the project backlog file if one exists.
 4. Commit the updated plan and docs.
 5. Run final verification.
 6. Push or create a PR only when the user asks for that step.
