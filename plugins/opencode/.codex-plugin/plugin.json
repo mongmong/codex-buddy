@@ -1,0 +1,26 @@
+{
+  "name": "opencode",
+  "version": "0.1.0",
+  "description": "Use opencode from Codex for code review, investigation, and delegated CLI runs.",
+  "author": {
+    "name": "codex-buddy"
+  },
+  "license": "MIT",
+  "keywords": ["codex", "opencode", "review", "automation"],
+  "skills": "./skills/",
+  "hooks": "./hooks.json",
+  "interface": {
+    "displayName": "opencode",
+    "shortDescription": "Run opencode review and delegation workflows from Codex.",
+    "longDescription": "Codex-native wrapper around the opencode CLI with review, run, setup, status, result, cancel, and gate support where Codex plugin surfaces allow it.",
+    "developerName": "codex-buddy",
+    "category": "Developer Tools",
+    "capabilities": ["Review", "CLI", "Automation"],
+    "defaultPrompt": [
+      "Review this branch with opencode.",
+      "Run an opencode task in the background.",
+      "Check opencode setup diagnostics."
+    ],
+    "brandColor": "#2563EB"
+  }
+}
