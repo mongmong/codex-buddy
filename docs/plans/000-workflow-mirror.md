@@ -234,8 +234,9 @@ REPO_ROOT="$(pwd)"
 In `docs/development-workflow.md`, Step 5 must name both raw reviewers:
 
 ```bash
-/home/chris/.opencode/bin/opencode run --model deepseek/deepseek-v4-flash --format default --print-logs --log-level INFO --dangerously-skip-permissions "Code review the changes on this branch in \"$(pwd)\". Run git diff main...HEAD if available, otherwise inspect the working tree. Focus on correctness, security, consistency with AGENTS.md and docs/architecture/decisions.md. Do not modify files. Return findings with file:line references and verdict approve or needs-attention."
-/home/chris/.opencode/bin/opencode run --model volcengine-plan/glm-5.1 --format default --print-logs --log-level INFO --dangerously-skip-permissions "Code review the changes on this branch in \"$(pwd)\". Run git diff main...HEAD if available, otherwise inspect the working tree. Focus on correctness, security, consistency with AGENTS.md and docs/architecture/decisions.md. Do not modify files. Return findings with file:line references and verdict approve or needs-attention."
+REPO_ROOT="$(pwd)"
+/home/chris/.opencode/bin/opencode run --model deepseek/deepseek-v4-flash --format default --print-logs --log-level INFO --dangerously-skip-permissions "Code review the changes on this branch in ${REPO_ROOT}. Run git diff main...HEAD if available, otherwise inspect the working tree. Focus on correctness, security, consistency with AGENTS.md and docs/architecture/decisions.md. Do not modify files. Return findings with file:line references and verdict approve or needs-attention."
+/home/chris/.opencode/bin/opencode run --model volcengine-plan/glm-5.1 --format default --print-logs --log-level INFO --dangerously-skip-permissions "Code review the changes on this branch in ${REPO_ROOT}. Run git diff main...HEAD if available, otherwise inspect the working tree. Focus on correctness, security, consistency with AGENTS.md and docs/architecture/decisions.md. Do not modify files. Return findings with file:line references and verdict approve or needs-attention."
 ```
 
 - [ ] **Step 4: Update `AGENTS.md` to delegate workflow detail**
@@ -315,21 +316,23 @@ Respond inline with `[FIXED]` or `[WONTFIX]`, including the technical response a
 Add:
 
 ```bash
+REPO_ROOT="$(pwd)"
 /home/chris/.opencode/bin/opencode run \
   --model deepseek/deepseek-v4-flash \
   --format default \
   --print-logs --log-level INFO \
   --dangerously-skip-permissions \
-  "Code review the changes on this branch in \"$(pwd)\". Run git diff main...HEAD if available, otherwise inspect the working tree. Focus on correctness, security, consistency with AGENTS.md and docs/architecture/decisions.md. Do not modify files. Return findings with file:line references and verdict approve or needs-attention."
+  "Code review the changes on this branch in ${REPO_ROOT}. Run git diff main...HEAD if available, otherwise inspect the working tree. Focus on correctness, security, consistency with AGENTS.md and docs/architecture/decisions.md. Do not modify files. Return findings with file:line references and verdict approve or needs-attention."
 ```
 
 ```bash
+REPO_ROOT="$(pwd)"
 /home/chris/.opencode/bin/opencode run \
   --model volcengine-plan/glm-5.1 \
   --format default \
   --print-logs --log-level INFO \
   --dangerously-skip-permissions \
-  "Code review the changes on this branch in \"$(pwd)\". Run git diff main...HEAD if available, otherwise inspect the working tree. Focus on correctness, security, consistency with AGENTS.md and docs/architecture/decisions.md. Do not modify files. Return findings with file:line references and verdict approve or needs-attention."
+  "Code review the changes on this branch in ${REPO_ROOT}. Run git diff main...HEAD if available, otherwise inspect the working tree. Focus on correctness, security, consistency with AGENTS.md and docs/architecture/decisions.md. Do not modify files. Return findings with file:line references and verdict approve or needs-attention."
 ```
 
 - [ ] **Step 3: Self-review review doc**
@@ -680,8 +683,79 @@ Resolved findings:
 - Added prerequisites for source repo paths, raw opencode, external model reachability, Codex plugin docs, and shell tools.
 - Replaced fixed-range `sed` reads with `cat` to avoid silently truncating source docs.
 - Documented the temporary `--dangerously-skip-permissions` bootstrapping risk and migration path.
-- Quoted `$(pwd)` in raw code-review command templates.
+- Precomputed `REPO_ROOT="$(pwd)"` in raw code-review command templates so prompt text does not contain embedded escaped command substitution.
 
 Focused re-review verdict: `approve`.
 
 Focused re-review result: all prior findings resolved; no remaining blockers.
+
+## Code Review
+
+### Review 1 - [codex]
+
+- **Date**: 2026-05-10
+- **Reviewer**: Codex current session
+- **Verdict**: Approved with notes
+
+**Should Fix**
+
+1. `[FIXED]` The final placeholder/source-term audit commands were over-broad when applied to all of `docs/`, because the approved design spec and this execution plan intentionally contain source-term examples and the audit regex text.
+   Response: Scoped the passing verification to adopted Phase 0 workflow artifacts and recorded the original broad-audit failure as a deviation below.
+
+2. `[FIXED]` `docs/development-workflow.md` contained avoidable audit-trigger words in ordinary guidance.
+   Response: Reworded those lines in commit `7764e9c`.
+
+### Review 2 - [opencode:deepseek-v4-flash]
+
+- **Date**: 2026-05-10
+- **Reviewer**: raw opencode, `deepseek/deepseek-v4-flash`
+- **Verdict**: Approved
+
+**Notes**
+
+1. `[FIXED]` The first full raw-review prompt failed before model execution with `Failed to run the query 'PRAGMA wal_checkpoint(PASSIVE)'`.
+   Response: Verified that an extremely long prompt without embedded escaped command syntax succeeds.
+   Verified that a review prompt with a literal repo path succeeds.
+   Updated the command templates to precompute `REPO_ROOT="$(pwd)"` and pass `${REPO_ROOT}` in the prompt instead of embedding `\"$(pwd)\"`.
+   A focused retry on the updated diff returned `approve` with no blockers.
+
+2. `[FIXED]` `CLAUDE.md` was a harmless compatibility redirect but undocumented in repo instructions.
+   Response: Documented it in `AGENTS.md`.
+
+3. `[FIXED]` The post-execution report and code-review entries were uncommitted.
+   Response: Included them in the final workflow report commit.
+
+### Review 3 - [opencode:glm-5.1]
+
+- **Date**: 2026-05-10
+- **Reviewer**: raw opencode, `volcengine-plan/glm-5.1`
+- **Verdict**: Approved
+
+**Notes**
+
+1. `[FIXED]` The first full raw-review prompt failed before model execution with `Failed to run the query 'PRAGMA wal_checkpoint(PASSIVE)'`.
+   Response: Verified that an extremely long prompt without embedded escaped command syntax succeeds.
+   Verified that a review prompt with a literal repo path succeeds.
+   Updated the command templates to precompute `REPO_ROOT="$(pwd)"` and pass `${REPO_ROOT}` in the prompt instead of embedding `\"$(pwd)\"`.
+   A focused retry on the updated diff returned `approve` with no blockers.
+
+## Post-Execution Report
+
+- **Implemented:** workflow docs, code-review docs, architecture decisions, Codex plugin-surface research, Codex-native opencode spec, `.gitignore`, README, and AGENTS.md workflow pointer.
+- **Verification:**
+  - `test -f docs/development-workflow.md`: passed.
+  - `test -f docs/code-review.md`: passed.
+  - `test -f docs/architecture/decisions.md`: passed.
+  - `test -f docs/specs/opencode-plugin.md`: passed.
+  - `test -f docs/specs/codex-plugin-surface-research.md`: passed.
+  - `printf '.codex-buddy/\n' | git check-ignore --stdin`: passed and printed `.codex-buddy/`.
+  - `rg -n "TB[D]|TO[D]O|placeholder|may need|maybe|unclear" docs/development-workflow.md docs/code-review.md docs/architecture/decisions.md docs/specs/opencode-plugin.md docs/specs/codex-plugin-surface-research.md AGENTS.md README.md`: passed with exit 1 and no matches.
+  - `rg -n "CLAUDE_PLUGIN_ROOT|\\.claude-plugin|\\.claudecode-buddy|\\$TMPDIR/opencode-prompts|/tmp/opencode-prompts|Sonnet|Opus|codex:codex-rescue|/codex:review" docs/development-workflow.md docs/code-review.md docs/architecture/decisions.md docs/specs/opencode-plugin.md docs/specs/codex-plugin-surface-research.md AGENTS.md README.md`: passed with exit 1 and no matches.
+  - `rg -n -F 'in \"$(pwd)\"' docs/development-workflow.md docs/code-review.md`: passed with exit 1 and no matches.
+  - `git diff --check`: passed.
+- **Deviations:** The original broad audit commands from Task 7 scanned all of `docs/`, including the approved design spec and this plan, which intentionally contain source-term examples and audit regexes; the final passing audit is scoped to the adopted Phase 0 workflow artifacts.
+  The first full raw opencode review prompts failed on opencode's local SQLite state before model execution.
+  A long prompt without embedded escaped command syntax succeeded, and a review prompt with a literal repo path succeeded, so prompt length was ruled out.
+  Command templates now precompute `REPO_ROOT` and avoid `\"$(pwd)\"` inside the prompt text.
+  A project-local `XDG_DATA_HOME` probe was attempted and rejected because it breaks model/provider recognition for this setup; the probe data was removed and no workflow document recommends that override.
+- **Follow-up:** plan 001 should begin the Codex-native `opencode` plugin parity port and should use the precomputed `REPO_ROOT` prompt pattern for raw opencode review commands.

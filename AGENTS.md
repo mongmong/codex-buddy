@@ -31,6 +31,9 @@ Expected layout as this workspace grows:
 - `docs/architecture/decisions.md` - index of cross-cutting architecture decisions.
 - `tests/` - workspace-level tests.
 
+`CLAUDE.md` is a compatibility redirect for Claude Code sessions.
+`AGENTS.md` remains the source of truth for this repository's instructions.
+
 Use the local Codex plugin scaffold conventions:
 
 - Plugin directories live at `plugins/<plugin-name>/`.

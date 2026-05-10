@@ -19,21 +19,23 @@ After the Codex `opencode` plugin ships, replace the raw opencode commands with 
 Use the two raw opencode commands shown below until the Codex `opencode` plugin exists.
 
 ```bash
+REPO_ROOT="$(pwd)"
 /home/chris/.opencode/bin/opencode run \
   --model deepseek/deepseek-v4-flash \
   --format default \
   --print-logs --log-level INFO \
   --dangerously-skip-permissions \
-  "Code review the changes on this branch in \"$(pwd)\". Run git diff main...HEAD if available, otherwise inspect the working tree. Focus on correctness, security, consistency with AGENTS.md and docs/architecture/decisions.md. Do not modify files. Return findings with file:line references and verdict approve or needs-attention."
+  "Code review the changes on this branch in ${REPO_ROOT}. Run git diff main...HEAD if available, otherwise inspect the working tree. Focus on correctness, security, consistency with AGENTS.md and docs/architecture/decisions.md. Do not modify files. Return findings with file:line references and verdict approve or needs-attention."
 ```
 
 ```bash
+REPO_ROOT="$(pwd)"
 /home/chris/.opencode/bin/opencode run \
   --model volcengine-plan/glm-5.1 \
   --format default \
   --print-logs --log-level INFO \
   --dangerously-skip-permissions \
-  "Code review the changes on this branch in \"$(pwd)\". Run git diff main...HEAD if available, otherwise inspect the working tree. Focus on correctness, security, consistency with AGENTS.md and docs/architecture/decisions.md. Do not modify files. Return findings with file:line references and verdict approve or needs-attention."
+  "Code review the changes on this branch in ${REPO_ROOT}. Run git diff main...HEAD if available, otherwise inspect the working tree. Focus on correctness, security, consistency with AGENTS.md and docs/architecture/decisions.md. Do not modify files. Return findings with file:line references and verdict approve or needs-attention."
 ```
 
 ## For Reviewers
