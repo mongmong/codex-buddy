@@ -545,14 +545,9 @@ cp /home/chris/workshop/claudecode-buddy/tests/opencode/{review-cmd,setup-cmd,mo
 
 - [ ] **Step 3: Adjust prompts for Codex**
 
-Edit prompt builders so review prompts reference:
-
-- `AGENTS.md`
-- `docs/development-workflow.md`
-- `docs/architecture/decisions.md`
-
-They must not reference Claude-only command names except in source-compatibility notes.
-Edit copied command and agent files so examples use Codex command names and direct runtime invocations where necessary.
+Keep `plugins/opencode/scripts/lib/prompt.mjs` generic and portable.
+Do not hard-code Codex Buddy project files such as `AGENTS.md`, `docs/development-workflow.md`, or `docs/architecture/decisions.md` into runtime prompt builders.
+Edit copied command and agent files so examples use Codex command names, direct runtime invocations where necessary, and generic language about honoring the current repository's own instructions.
 
 - [ ] **Step 4: Add skill-backed runtime instructions**
 
