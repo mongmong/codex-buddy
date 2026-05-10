@@ -1,0 +1,58 @@
+# Architecture Decisions
+
+This file records cross-cutting architectural decisions for the Codex Buddy workspace.
+Decisions are append-only.
+Plans introducing new decisions update this file during the Ship step.
+
+## D-001 — Codex Plugin Layout
+
+Plugins live under `plugins/plugin-name/` and use `plugins/plugin-name/.codex-plugin/plugin.json`.
+Repo-local marketplace metadata lives at `.agents/plugins/marketplace.json`.
+
+Why: this follows Codex plugin scaffold conventions and keeps the repo installable as a Codex plugin marketplace.
+
+## D-002 — One Node Companion Runtime Per Plugin
+
+Each CLI-wrapper plugin uses one Node ESM companion script at `scripts/buddy.mjs`, with focused helper modules under `scripts/lib/`.
+No external runtime dependency is added until a plan justifies it.
+
+Why: this preserves the source plugin's auditable runtime shape while keeping dependency management out of the bootstrap.
+
+## D-003 — Hybrid Review Output
+
+Reviews use Markdown findings followed by a minimal fenced JSON trailer with `verdict` and `blockers`.
+
+Why: this keeps rich findings readable while preserving a small machine-readable gate signal across heterogeneous opencode-backed models.
+
+## D-004 — Project-Local Runtime State
+
+Plugin runtime state lives under `.codex-buddy/plugin-name/` at the project root.
+Plugin-controlled transient prompt and task files live under `.codex-buddy/plugin-name/tmp/`, not `/tmp` or `${TMPDIR}` by default.
+
+Why: this avoids unbounded system temp growth and keeps plugin state scoped to the project.
+
+## D-005 — Bootstrapping Reviews Use Raw opencode
+
+Until the Codex `opencode` plugin exists, plan and code review gates use raw `opencode run` commands from the repo root.
+
+Why: the workflow must be live before the plugin that will eventually automate it exists.
+
+## D-006 — Parity With Claude Code `opencode`
+
+The first product target is a Codex-native `opencode` plugin with practical feature parity with `../claudecode-buddy/plugins/opencode`.
+Codex host limitations must be documented rather than silently omitting features.
+
+Why: the user explicitly chose parity as the goal, with `/claudecode:*` support deferred to a future plan.
+
+## D-007 — Handwritten Runtime Validators First
+
+Runtime validation uses small handwritten validators until a plan justifies adding schema dependencies.
+
+Why: this preserves the source plugin's low-dependency runtime posture and keeps early plugin behavior easy to audit.
+
+## How To Add A Decision
+
+1. Add a new `## D-NNN — Short Title` section.
+2. State the decision directly.
+3. Explain why.
+4. Link the plan or spec that introduced it.
