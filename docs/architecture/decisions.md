@@ -33,7 +33,8 @@ Why: this avoids unbounded system temp growth and keeps plugin state scoped to t
 
 ## D-005 — Bootstrapping Reviews Use Raw opencode
 
-Until the Codex `opencode` plugin exists, plan and code review gates use raw `opencode run` commands from the repo root.
+Until the Codex `opencode` plugin exists, plan, code, and investigation gates use raw `opencode run` commands from the repo root.
+The raw commands are a bootstrap substitute for the future plugin review surface.
 
 Why: the workflow must be live before the plugin that will eventually automate it exists.
 
@@ -49,6 +50,16 @@ Why: the user explicitly chose parity as the goal, with `/claudecode:*` support 
 Runtime validation uses small handwritten validators until a plan justifies adding schema dependencies.
 
 Why: this preserves the source plugin's low-dependency runtime posture and keeps early plugin behavior easy to audit.
+
+## D-008 — Multi-Reviewer Gates
+
+Substantial plans and code changes use Codex self-review plus multiple external opencode reviewers.
+Plan review uses deeper planning models.
+Code review uses the same reviewer diversity with a faster DeepSeek tier.
+Complex bug investigations use a separate read-only investigation gate with Codex self-investigation and multiple external opencode investigators.
+Investigation uses a smaller external roster than plan and code review because diagnosis benefits from triangulation rather than ship/no-ship consensus.
+
+Why: the workspace intentionally mirrors the stronger review discipline from `../magicburg-go/CLAUDE.md` while adapting it to Codex and the current Phase 0 raw-opencode bootstrap.
 
 ## How To Add A Decision
 

@@ -13,6 +13,8 @@ It is the Codex-side counterpart to `../claudecode-buddy`: plugins here should e
   Use descriptive branch names such as `feature/plan-NNN-description`.
 - For substantial work, write a plan before implementation.
   Execution plans live in `docs/plans/` and use sequential numbers: `000`, `001`, `002`, and so on.
+- Substantial plans and code changes require Codex self-review plus multiple external opencode reviewers.
+- Complex investigations use the read-only investigation gate in `docs/development-workflow.md` before planning a fix.
 - Do not push to remote unless explicitly asked.
 - Do not commit directly to `main` for feature work.
 - Always run relevant tests before calling work complete.
@@ -27,7 +29,8 @@ Expected layout as this workspace grows:
 - `.agents/plugins/marketplace.json` - repo-local Codex plugin marketplace manifest.
 - `docs/` - documentation.
 - `docs/plans/` - sequential execution plans.
-- `docs/specs/` - design specs for architectural or cross-cutting decisions.
+- `docs/specs/` - sequential design specs for architectural or cross-cutting decisions.
+- `docs/reviews/` - sequential standalone audits or transcript reviews when no plan owns the review.
 - `docs/architecture/decisions.md` - index of cross-cutting architecture decisions.
 - `tests/` - workspace-level tests.
 
@@ -95,6 +98,8 @@ Follow `docs/development-workflow.md` for the complete plan review gate and appr
 
 Execution plans go in `docs/plans/`.
 Design specs go in `docs/specs/` only when the work introduces or refines an architectural decision or resolves ambiguity that future plans need to respect.
+Standalone audits or transcript reviews go in `docs/reviews/` when there is no numbered plan file to embed them in.
+All three directories use sequential filenames: `NNN-kebab-name.md`.
 
 Rule of thumb:
 
@@ -112,7 +117,7 @@ Follow `docs/development-workflow.md` and `docs/code-review.md` for the current 
 At minimum:
 
 - Self-review the plan or diff critically before implementation or shipping.
-- Use available external reviewers as review-only inputs when the task warrants it.
+- Use the multiple external reviewer gates in `docs/development-workflow.md` for substantial plans, code changes, and complex investigations.
 - Record material findings and their resolution in the plan file.
 - Resolve blocker findings before shipping.
 

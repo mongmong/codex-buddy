@@ -25,7 +25,7 @@ It preserves the source workflow shape while replacing Claude-only surfaces with
 ## Prerequisites
 
 - `../claudecode-buddy` exists and contains the source workflow, review process, decision index, and product spec listed above.
-- `/home/chris/.opencode/bin/opencode` is installed and can reach `deepseek/deepseek-v4-pro`, `deepseek/deepseek-v4-flash`, and `volcengine-plan/glm-5.1`.
+- `/home/chris/.opencode/bin/opencode` is installed and can reach `opencode-go/deepseek-v4-pro`, `opencode-go/deepseek-v4-flash`, `opencode-go/glm-5.1`, and `opencode-go/kimi-k2.6`.
 - Codex plugin skill docs exist at `/home/chris/.codex/skills/.system/plugin-creator/SKILL.md` and `/home/chris/.codex/skills/.system/plugin-creator/references/plugin-json-spec.md`.
 - `rg`, `find`, `sort`, `cat`, `git`, and `mkdir` are available in the shell.
 
@@ -41,12 +41,14 @@ After the Codex `opencode` plugin exists, later plans should replace this flag w
   Codex repo review process with raw `opencode run` reviewers before the Codex `opencode` plugin exists.
 - Create: `docs/architecture/decisions.md`
   Fresh Codex decision log containing only decisions already adopted for this repo.
-- Create: `docs/specs/opencode-plugin.md`
+- Create: `docs/specs/001-opencode-plugin.md`
   Codex-native product spec derived from the Claude plugin spec.
-- Create: `docs/specs/codex-plugin-surface-research.md`
+- Create: `docs/specs/000-codex-plugin-surface-research.md`
   Research note recording verified Codex plugin surfaces and host limitations.
 - Create: `.gitignore`
   Ignore `.codex-buddy/` runtime and transient state.
+- Create: `docs/reviews/.gitkeep`
+  Keep the optional numbered standalone review directory visible in git.
 - Modify: `AGENTS.md`
   Point future work at the mirrored workflow and plan-review rules.
 - Modify: `README.md`
@@ -62,22 +64,38 @@ Use the approved design's bootstrapping rules until the Codex `opencode` plugin 
 - External plan review uses:
 
 ```bash
+REPO_ROOT="$(pwd)"
 /home/chris/.opencode/bin/opencode run \
-  --model deepseek/deepseek-v4-pro \
+  --model opencode-go/deepseek-v4-pro \
   --format default \
   --print-logs --log-level INFO \
   --dangerously-skip-permissions \
-  "Review docs/plans/000-workflow-mirror.md in /home/chris/workshop/codex-buddy. Focus on blockers, hidden assumptions, scope/order problems, and missing risks. Do not modify files. Return verdict approve or needs-attention with blockers."
+  "Review docs/plans/000-workflow-mirror.md in ${REPO_ROOT}. Focus on blockers, hidden assumptions, scope/order problems, and missing risks. Do not modify files. Return verdict approve or needs-attention with blockers."
+
+/home/chris/.opencode/bin/opencode run \
+  --model opencode-go/glm-5.1 \
+  --format default \
+  --print-logs --log-level INFO \
+  --dangerously-skip-permissions \
+  "Review docs/plans/000-workflow-mirror.md in ${REPO_ROOT}. Focus on blockers, hidden assumptions, scope/order problems, and missing risks. Do not modify files. Return verdict approve or needs-attention with blockers."
+
+/home/chris/.opencode/bin/opencode run \
+  --model opencode-go/kimi-k2.6 \
+  --format default \
+  --print-logs --log-level INFO \
+  --dangerously-skip-permissions \
+  "Review docs/plans/000-workflow-mirror.md in ${REPO_ROOT}. Focus on blockers, hidden assumptions, scope/order problems, and missing risks. Do not modify files. Return verdict approve or needs-attention with blockers."
 ```
 
 - External code reviews after implementation use raw `opencode run` with:
-  `deepseek/deepseek-v4-flash` and `volcengine-plan/glm-5.1`.
+  `opencode-go/deepseek-v4-flash`, `opencode-go/glm-5.1`, and `opencode-go/kimi-k2.6`.
+- Complex bug investigations use Codex self-investigation plus raw `opencode run` investigators on `opencode-go/deepseek-v4-pro` and `opencode-go/glm-5.1`.
 - Do not invent `codex:codex-rescue` or `/codex:review` equivalents during Phase 0.
 
 ## Task 1: Research Codex Plugin Surfaces
 
 **Files:**
-- Create: `docs/specs/codex-plugin-surface-research.md`
+- Create: `docs/specs/000-codex-plugin-surface-research.md`
 
 - [ ] **Step 0: Create the specs directory**
 
@@ -120,7 +138,7 @@ If examples exist, inspect enough of them to verify command, agent, skill, hook,
 
 - [ ] **Step 4: Write the research note**
 
-Create `docs/specs/codex-plugin-surface-research.md` with this structure:
+Create `docs/specs/000-codex-plugin-surface-research.md` with this structure:
 
 ```markdown
 # Codex Plugin Surface Research
@@ -128,7 +146,7 @@ Create `docs/specs/codex-plugin-surface-research.md` with this structure:
 ## Purpose
 
 This note records the Codex plugin surfaces verified before porting the Claude Code `opencode` plugin.
-It exists so `docs/specs/opencode-plugin.md` can distinguish implemented parity from host limitations.
+It exists so `docs/specs/001-opencode-plugin.md` can distinguish implemented parity from host limitations.
 
 ## Verified Sources
 
@@ -158,7 +176,7 @@ If no command or agent convention is locally verifiable during Phase 0, state th
 
 ## Host Limitations
 
-Any source plugin feature that depends on an unavailable or unverified Codex host surface must be marked as "planned with documented host limitation" in `docs/specs/opencode-plugin.md`.
+Any source plugin feature that depends on an unavailable or unverified Codex host surface must be marked as "planned with documented host limitation" in `docs/specs/001-opencode-plugin.md`.
 ```
 
 - [ ] **Step 5: Self-review the research note**
@@ -166,7 +184,7 @@ Any source plugin feature that depends on an unavailable or unverified Codex hos
 Run:
 
 ```bash
-rg -n "TB[D]|TO[D]O|placeholder|unclear|unknown" docs/specs/codex-plugin-surface-research.md
+rg -n "TB[D]|TO[D]O|placeholder|unclear|unknown" docs/specs/000-codex-plugin-surface-research.md
 ```
 
 Expected: no matches, except the word "unknown" may appear only if it is part of an explicit verified limitation.
@@ -176,7 +194,7 @@ Expected: no matches, except the word "unknown" may appear only if it is part of
 Run:
 
 ```bash
-git add docs/specs/codex-plugin-surface-research.md
+git add docs/specs/000-codex-plugin-surface-research.md
 git commit -m "docs: record codex plugin surface research"
 ```
 
@@ -214,7 +232,7 @@ Apply these Codex substitutions:
 - Keep plan files under `docs/plans/`.
 - Keep design specs under `docs/specs/`.
 
-- [ ] **Step 2: Add the bootstrapping plan-review command**
+- [ ] **Step 2: Add the bootstrapping plan-review commands**
 
 In `docs/development-workflow.md`, Step 2 must include this command shape:
 
@@ -222,7 +240,21 @@ In `docs/development-workflow.md`, Step 2 must include this command shape:
 PLAN_PATH="docs/plans/000-workflow-mirror.md"
 REPO_ROOT="$(pwd)"
 /home/chris/.opencode/bin/opencode run \
-  --model deepseek/deepseek-v4-pro \
+  --model opencode-go/deepseek-v4-pro \
+  --format default \
+  --print-logs --log-level INFO \
+  --dangerously-skip-permissions \
+  "Review ${PLAN_PATH} in ${REPO_ROOT}. Focus on blockers, hidden assumptions, scope/order problems, and missing risks. Do not modify files. Return verdict approve or needs-attention with blockers."
+
+/home/chris/.opencode/bin/opencode run \
+  --model opencode-go/glm-5.1 \
+  --format default \
+  --print-logs --log-level INFO \
+  --dangerously-skip-permissions \
+  "Review ${PLAN_PATH} in ${REPO_ROOT}. Focus on blockers, hidden assumptions, scope/order problems, and missing risks. Do not modify files. Return verdict approve or needs-attention with blockers."
+
+/home/chris/.opencode/bin/opencode run \
+  --model opencode-go/kimi-k2.6 \
   --format default \
   --print-logs --log-level INFO \
   --dangerously-skip-permissions \
@@ -231,12 +263,13 @@ REPO_ROOT="$(pwd)"
 
 - [ ] **Step 3: Add post-implementation code-review commands**
 
-In `docs/development-workflow.md`, Step 5 must name both raw reviewers:
+In `docs/development-workflow.md`, Step 5 must name all raw reviewers:
 
 ```bash
 REPO_ROOT="$(pwd)"
-/home/chris/.opencode/bin/opencode run --model deepseek/deepseek-v4-flash --format default --print-logs --log-level INFO --dangerously-skip-permissions "Code review the changes on this branch in ${REPO_ROOT}. Run git diff main...HEAD if available, otherwise inspect the working tree. Focus on correctness, security, consistency with AGENTS.md and docs/architecture/decisions.md. Do not modify files. Return findings with file:line references and verdict approve or needs-attention."
-/home/chris/.opencode/bin/opencode run --model volcengine-plan/glm-5.1 --format default --print-logs --log-level INFO --dangerously-skip-permissions "Code review the changes on this branch in ${REPO_ROOT}. Run git diff main...HEAD if available, otherwise inspect the working tree. Focus on correctness, security, consistency with AGENTS.md and docs/architecture/decisions.md. Do not modify files. Return findings with file:line references and verdict approve or needs-attention."
+/home/chris/.opencode/bin/opencode run --model opencode-go/deepseek-v4-flash --format default --print-logs --log-level INFO --dangerously-skip-permissions "Code review the changes on this branch in ${REPO_ROOT}. Run git diff main...HEAD if available, otherwise inspect the working tree. Focus on correctness, security, consistency with AGENTS.md and docs/architecture/decisions.md. Do not modify files. Return findings with file:line references and verdict approve or needs-attention."
+/home/chris/.opencode/bin/opencode run --model opencode-go/glm-5.1 --format default --print-logs --log-level INFO --dangerously-skip-permissions "Code review the changes on this branch in ${REPO_ROOT}. Run git diff main...HEAD if available, otherwise inspect the working tree. Focus on correctness, security, consistency with AGENTS.md and docs/architecture/decisions.md. Do not modify files. Return findings with file:line references and verdict approve or needs-attention."
+/home/chris/.opencode/bin/opencode run --model opencode-go/kimi-k2.6 --format default --print-logs --log-level INFO --dangerously-skip-permissions "Code review the changes on this branch in ${REPO_ROOT}. Run git diff main...HEAD if available, otherwise inspect the working tree. Focus on correctness, security, consistency with AGENTS.md and docs/architecture/decisions.md. Do not modify files. Return findings with file:line references and verdict approve or needs-attention."
 ```
 
 - [ ] **Step 4: Update `AGENTS.md` to delegate workflow detail**
@@ -292,14 +325,15 @@ It is distinct from the plan review gate.
 Until the Codex `opencode` plugin exists, this workspace uses:
 
 1. Codex current-session self-review.
-2. Raw opencode review on `deepseek/deepseek-v4-flash`.
-3. Raw opencode review on `volcengine-plan/glm-5.1`.
+2. Raw opencode review on `opencode-go/deepseek-v4-flash`.
+3. Raw opencode review on `opencode-go/glm-5.1`.
+4. Raw opencode review on `opencode-go/kimi-k2.6`.
 
 After the Codex `opencode` plugin ships, replace the raw opencode commands with the plugin's Codex-native review surface.
 
 ## Reviewer Commands
 
-Use the two raw opencode commands shown below until the Codex `opencode` plugin exists.
+Use the three raw opencode commands shown below until the Codex `opencode` plugin exists.
 
 ## For Reviewers
 
@@ -318,7 +352,7 @@ Add:
 ```bash
 REPO_ROOT="$(pwd)"
 /home/chris/.opencode/bin/opencode run \
-  --model deepseek/deepseek-v4-flash \
+  --model opencode-go/deepseek-v4-flash \
   --format default \
   --print-logs --log-level INFO \
   --dangerously-skip-permissions \
@@ -328,7 +362,17 @@ REPO_ROOT="$(pwd)"
 ```bash
 REPO_ROOT="$(pwd)"
 /home/chris/.opencode/bin/opencode run \
-  --model volcengine-plan/glm-5.1 \
+  --model opencode-go/glm-5.1 \
+  --format default \
+  --print-logs --log-level INFO \
+  --dangerously-skip-permissions \
+  "Code review the changes on this branch in ${REPO_ROOT}. Run git diff main...HEAD if available, otherwise inspect the working tree. Focus on correctness, security, consistency with AGENTS.md and docs/architecture/decisions.md. Do not modify files. Return findings with file:line references and verdict approve or needs-attention."
+```
+
+```bash
+REPO_ROOT="$(pwd)"
+/home/chris/.opencode/bin/opencode run \
+  --model opencode-go/kimi-k2.6 \
   --format default \
   --print-logs --log-level INFO \
   --dangerously-skip-permissions \
@@ -454,7 +498,7 @@ git commit -m "docs: add codex architecture decisions"
 ## Task 5: Write Codex-Native `opencode` Spec Baseline
 
 **Files:**
-- Create: `docs/specs/opencode-plugin.md`
+- Create: `docs/specs/001-opencode-plugin.md`
 
 - [ ] **Step 1: Create the specs directory**
 
@@ -470,14 +514,14 @@ Run:
 
 ```bash
 cat ../claudecode-buddy/docs/specs/opencode-plugin.md
-cat docs/specs/codex-plugin-surface-research.md
+cat docs/specs/000-codex-plugin-surface-research.md
 ```
 
 Expected: source architecture and local Codex plugin-surface findings are visible.
 
 - [ ] **Step 3: Write Codex-native spec**
 
-Create `docs/specs/opencode-plugin.md` with these required sections:
+Create `docs/specs/001-opencode-plugin.md` with these required sections:
 
 ```markdown
 # Spec — opencode Codex Plugin
@@ -505,7 +549,7 @@ It is the Codex-side counterpart to `../claudecode-buddy/plugins/opencode`.
 
 The plugin root is `plugins/opencode/`.
 The manifest is `plugins/opencode/.codex-plugin/plugin.json`.
-The spec describes commands, agents or equivalent programmatic surfaces, skills if supported, hooks if supported, prompts, schemas, scripts, and tests based on `docs/specs/codex-plugin-surface-research.md`.
+The spec describes commands, agents or equivalent programmatic surfaces, skills if supported, hooks if supported, prompts, schemas, scripts, and tests based on `docs/specs/000-codex-plugin-surface-research.md`.
 
 ## Runtime State
 
@@ -544,7 +588,7 @@ Each row must have one of: planned, implemented, or planned with documented host
 Run:
 
 ```bash
-rg -n "TB[D]|TO[D]O|placeholder|may need|maybe|unclear|\\.claude-plugin|\\.claudecode-buddy|CLAUDE_PLUGIN_ROOT|\\$TMPDIR/opencode-prompts|/tmp/opencode-prompts" docs/specs/opencode-plugin.md
+rg -n "TB[D]|TO[D]O|placeholder|may need|maybe|unclear|\\.claude-plugin|\\.claudecode-buddy|CLAUDE_PLUGIN_ROOT|\\$TMPDIR/opencode-prompts|/tmp/opencode-prompts" docs/specs/001-opencode-plugin.md
 ```
 
 Expected: no matches.
@@ -554,7 +598,7 @@ Expected: no matches.
 Run:
 
 ```bash
-git add docs/specs/opencode-plugin.md
+git add docs/specs/001-opencode-plugin.md
 git commit -m "docs: add codex opencode plugin spec"
 ```
 
@@ -621,8 +665,8 @@ Run:
 test -f docs/development-workflow.md
 test -f docs/code-review.md
 test -f docs/architecture/decisions.md
-test -f docs/specs/opencode-plugin.md
-test -f docs/specs/codex-plugin-surface-research.md
+test -f docs/specs/001-opencode-plugin.md
+test -f docs/specs/000-codex-plugin-surface-research.md
 printf '.codex-buddy/\n' | git check-ignore --stdin
 rg -n "TB[D]|TO[D]O|placeholder|may need|maybe|unclear" docs AGENTS.md README.md
 ```
@@ -646,7 +690,7 @@ Append to this plan:
 
 Add `## Post-Execution Report` with these bullets:
 
-- **Implemented:** workflow docs, code-review docs, architecture decisions, Codex plugin-surface research, Codex-native opencode spec, `.gitignore`, README, and AGENTS.md workflow pointer.
+- **Implemented:** workflow docs, code-review docs, architecture decisions, numbered Codex plugin-surface research and opencode spec files, `.gitignore`, `docs/reviews/.gitkeep`, README, AGENTS.md workflow pointer, multi-external-review gates, `opencode-go` model namespace, and the read-only investigation gate.
 - **Verification:** list the exact verification commands from Steps 1 and 2 and their observed outcomes.
 - **Deviations:** record any divergence from the plan, or write `None`.
 - **Follow-up:** plan 001 should begin the Codex-native `opencode` plugin parity port.
@@ -671,13 +715,13 @@ git commit -m "docs: record workflow mirror execution report"
 
 Date: 2026-05-10
 
-Reviewer: raw `opencode run` with `deepseek/deepseek-v4-pro`.
+Reviewer: raw `opencode run` with `opencode-go/deepseek-v4-pro`.
 
 Initial verdict: `needs-attention`, with no execution-halting blockers.
 
 Resolved findings:
 
-- Created `docs/specs/` before Task 1 writes `docs/specs/codex-plugin-surface-research.md`.
+- Created `docs/specs/` before Task 1 writes `docs/specs/000-codex-plugin-surface-research.md`.
 - Added D-007 for handwritten runtime validators before schema dependencies.
 - Replaced fragile `git check-ignore .codex-buddy` checks with `printf '.codex-buddy/\n' | git check-ignore --stdin`.
 - Added prerequisites for source repo paths, raw opencode, external model reachability, Codex plugin docs, and shell tools.
@@ -708,7 +752,7 @@ Focused re-review result: all prior findings resolved; no remaining blockers.
 ### Review 2 - [opencode:deepseek-v4-flash]
 
 - **Date**: 2026-05-10
-- **Reviewer**: raw opencode, `deepseek/deepseek-v4-flash`
+- **Reviewer**: raw opencode, `opencode-go/deepseek-v4-flash`
 - **Verdict**: Approved
 
 **Notes**
@@ -728,7 +772,7 @@ Focused re-review result: all prior findings resolved; no remaining blockers.
 ### Review 3 - [opencode:glm-5.1]
 
 - **Date**: 2026-05-10
-- **Reviewer**: raw opencode, `volcengine-plan/glm-5.1`
+- **Reviewer**: raw opencode, `opencode-go/glm-5.1`
 - **Verdict**: Approved
 
 **Notes**
@@ -739,19 +783,62 @@ Focused re-review result: all prior findings resolved; no remaining blockers.
    Updated the command templates to precompute `REPO_ROOT="$(pwd)"` and pass `${REPO_ROOT}` in the prompt instead of embedding `\"$(pwd)\"`.
    A focused retry on the updated diff returned `approve` with no blockers.
 
+### Review 4 - [opencode-go:deepseek-v4-flash]
+
+- **Date**: 2026-05-10
+- **Reviewer**: raw opencode, `opencode-go/deepseek-v4-flash`
+- **Verdict**: Approved
+
+**Notes**
+
+1. `[FIXED]` Reviewed the numbered document naming, `opencode-go` provider namespace, multi-external plan/code review gates, and read-only investigation gate.
+   Response: Reviewer returned `approve` with no blockers.
+
+### Review 5 - [opencode-go:glm-5.1]
+
+- **Date**: 2026-05-10
+- **Reviewer**: raw opencode, `opencode-go/glm-5.1`
+- **Verdict**: Approved after fixes
+
+**Should Fix**
+
+1. `[FIXED]` `docs/reviews/` was documented but not present in git.
+   Response: Added `docs/reviews/.gitkeep`.
+
+2. `[FIXED]` The investigation gate used two external investigators while plan and code review used three, without explaining the asymmetry.
+   Response: Documented that investigations optimize for hypothesis triangulation while plan/code reviews optimize for ship/no-ship consensus; Kimi remains in the plan and code review gates.
+
+### Review 6 - [opencode-go:kimi-k2.6]
+
+- **Date**: 2026-05-10
+- **Reviewer**: raw opencode, `opencode-go/kimi-k2.6`
+- **Verdict**: Approved
+
+**Notes**
+
+1. `[FIXED]` Reviewed the numbered document naming, `opencode-go` provider namespace, multi-external plan/code review gates, and read-only investigation gate.
+   Response: Reviewer returned `approve` with no blockers.
+
 ## Post-Execution Report
 
-- **Implemented:** workflow docs, code-review docs, architecture decisions, Codex plugin-surface research, Codex-native opencode spec, `.gitignore`, README, and AGENTS.md workflow pointer.
+- **Implemented:** workflow docs, code-review docs, architecture decisions, numbered Codex plugin-surface research and opencode spec files, `.gitignore`, `docs/reviews/.gitkeep`, README, AGENTS.md workflow pointer, multi-external-review gates, `opencode-go` model namespace, and the read-only investigation gate.
 - **Verification:**
   - `test -f docs/development-workflow.md`: passed.
   - `test -f docs/code-review.md`: passed.
   - `test -f docs/architecture/decisions.md`: passed.
-  - `test -f docs/specs/opencode-plugin.md`: passed.
-  - `test -f docs/specs/codex-plugin-surface-research.md`: passed.
+  - `test -f docs/specs/001-opencode-plugin.md`: passed.
+  - `test -f docs/specs/000-codex-plugin-surface-research.md`: passed.
+  - `test -f docs/reviews/.gitkeep`: passed.
   - `printf '.codex-buddy/\n' | git check-ignore --stdin`: passed and printed `.codex-buddy/`.
-  - `rg -n "TB[D]|TO[D]O|placeholder|may need|maybe|unclear" docs/development-workflow.md docs/code-review.md docs/architecture/decisions.md docs/specs/opencode-plugin.md docs/specs/codex-plugin-surface-research.md AGENTS.md README.md`: passed with exit 1 and no matches.
-  - `rg -n "CLAUDE_PLUGIN_ROOT|\\.claude-plugin|\\.claudecode-buddy|\\$TMPDIR/opencode-prompts|/tmp/opencode-prompts|Sonnet|Opus|codex:codex-rescue|/codex:review" docs/development-workflow.md docs/code-review.md docs/architecture/decisions.md docs/specs/opencode-plugin.md docs/specs/codex-plugin-surface-research.md AGENTS.md README.md`: passed with exit 1 and no matches.
+  - `rg -n "TB[D]|TO[D]O|placeholder|may need|maybe|unclear" docs/development-workflow.md docs/code-review.md docs/architecture/decisions.md docs/specs/001-opencode-plugin.md docs/specs/000-codex-plugin-surface-research.md AGENTS.md README.md`: passed with exit 1 and no matches.
+  - `rg -n "CLAUDE_PLUGIN_ROOT|\\.claude-plugin|\\.claudecode-buddy|\\$TMPDIR/opencode-prompts|/tmp/opencode-prompts|Sonnet|Opus|codex:codex-rescue|/codex:review" docs/development-workflow.md docs/code-review.md docs/architecture/decisions.md docs/specs/001-opencode-plugin.md docs/specs/000-codex-plugin-surface-research.md AGENTS.md README.md`: passed with exit 1 and no matches.
+  - `rg -n "docs/specs/(opencode-plugin|codex-plugin-surface-research)\\.md" AGENTS.md README.md docs`: passed with only the source-repo reference in `docs/plans/000-workflow-mirror.md`.
+  - Legacy provider-name audit for non-`opencode-go` DeepSeek, GLM, and Kimi references: passed with exit 1 and no matches.
   - `rg -n -F 'in \"$(pwd)\"' docs/development-workflow.md docs/code-review.md`: passed with exit 1 and no matches.
+  - `/home/chris/.opencode/bin/opencode run --model opencode-go/deepseek-v4-flash --format default --dangerously-skip-permissions "Reply with only ok."`: passed.
+  - `/home/chris/.opencode/bin/opencode run --model opencode-go/glm-5.1 --format default --dangerously-skip-permissions "Reply with only ok."`: passed.
+  - `/home/chris/.opencode/bin/opencode run --model opencode-go/kimi-k2.6 --format default --dangerously-skip-permissions "Reply with only ok."`: passed.
+  - External reviews on `opencode-go/deepseek-v4-flash`, `opencode-go/glm-5.1`, and `opencode-go/kimi-k2.6`: passed after the `.gitkeep` and investigation-rationale fixes.
   - `git diff --check`: passed.
 - **Deviations:** The original broad audit commands from Task 7 scanned all of `docs/`, including the approved design spec and this plan, which intentionally contain source-term examples and audit regexes; the final passing audit is scoped to the adopted Phase 0 workflow artifacts.
   The first full raw opencode review prompts failed on opencode's local SQLite state before model execution.

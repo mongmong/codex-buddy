@@ -26,7 +26,7 @@ Phase 0 ports the process documents from `../claudecode-buddy` into this repo wi
 - `docs/development-workflow.md`
 - `docs/code-review.md`
 - `docs/architecture/decisions.md`
-- `docs/specs/opencode-plugin.md` as the starting product design reference
+- `docs/specs/001-opencode-plugin.md` as the starting product design reference
 - `AGENTS.md` updates that point contributors at the mirrored workflow
 
 Phase 0 must not copy the source repo blindly.
@@ -57,11 +57,13 @@ Until it exists, the workflow must use these live review paths:
 - **Self-review:** the current Codex coding session performs the self-review step.
   Do not import the Claude repo's Sonnet/Opus tier policy.
   In this repo, the default coding and self-review agent is the current Codex model unless the user explicitly changes it.
-- **Plan review:** use raw `opencode run --model deepseek/deepseek-v4-pro` from the repo root as the external plan reviewer.
+- **Plan review:** use Codex self-review plus raw `opencode run` external reviewers from the repo root:
+  `opencode-go/deepseek-v4-pro`, `opencode-go/glm-5.1`, and `opencode-go/kimi-k2.6`.
   Record the reviewer output in the plan file.
-- **Code review:** use raw `opencode run` from the repo root for the two opencode reviewers that the Claude workflow names:
-  `deepseek/deepseek-v4-flash` and `volcengine-plan/glm-5.1`.
-  Record both outputs in the plan file.
+- **Code review:** use Codex self-review plus raw `opencode run` from the repo root for:
+  `opencode-go/deepseek-v4-flash`, `opencode-go/glm-5.1`, and `opencode-go/kimi-k2.6`.
+  Record all outputs in the plan file.
+- **Investigation review:** use Codex self-investigation plus raw `opencode run` read-only investigators on `opencode-go/deepseek-v4-pro` and `opencode-go/glm-5.1` before planning a non-obvious bug fix.
 - **Codex reviewer references:** do not invent a `codex:codex-rescue` equivalent for this repo during Phase 0.
   Where the source workflow mentions `codex:codex-rescue` or `/codex:review`, translate that role to "Codex self-review/current-session review" unless a later Codex plugin surface provides a real external Codex reviewer.
 - **After the Codex `opencode` plugin ships:** replace the raw opencode CLI fallback with the plugin's Codex-native commands or programmatic surfaces.
@@ -94,7 +96,7 @@ The Codex decision text must still state the Codex-specific rule directly.
 
 ### `opencode` Spec Mirror Scope
 
-`docs/specs/opencode-plugin.md` must be a Codex-native rewrite using `../claudecode-buddy/docs/specs/opencode-plugin.md` as source material.
+`docs/specs/001-opencode-plugin.md` must be a Codex-native rewrite using `../claudecode-buddy/docs/specs/opencode-plugin.md` as source material.
 It must not be a syntactic substitution pass.
 
 The Codex spec must preserve the source plugin's architectural intent:
@@ -119,7 +121,7 @@ The Codex spec must translate or remove host-specific details:
 - Replace the source plugin's `${TMPDIR:-/tmp}/opencode-prompts` prompt-file pattern with a project-local transient directory under `<project>/.codex-buddy/opencode/tmp/`.
   The Codex port must not create routine prompt or task files under `/tmp`, because long-running review and run workflows can fill the system temp filesystem.
 
-The Phase 0 plan must include a short Codex plugin-surface research step before finalizing the rewritten `docs/specs/opencode-plugin.md`.
+The Phase 0 plan must include a short Codex plugin-surface research step before finalizing the rewritten `docs/specs/001-opencode-plugin.md`.
 The research output should state which Codex plugin surfaces are available for commands, agents or skills, hooks, and marketplace metadata.
 If a surface is unavailable or unclear, the spec must mark the affected parity feature as "planned with documented host limitation" rather than pretending parity exists.
 

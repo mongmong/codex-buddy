@@ -9,19 +9,20 @@ Reviewers add findings there, and authors respond inline.
 Until the Codex `opencode` plugin exists, this workspace uses:
 
 1. Codex current-session self-review.
-2. Raw opencode review on `deepseek/deepseek-v4-flash`.
-3. Raw opencode review on `volcengine-plan/glm-5.1`.
+2. Raw opencode review on `opencode-go/deepseek-v4-flash`.
+3. Raw opencode review on `opencode-go/glm-5.1`.
+4. Raw opencode review on `opencode-go/kimi-k2.6`.
 
 After the Codex `opencode` plugin ships, replace the raw opencode commands with the plugin's Codex-native review surface.
 
 ## Reviewer Commands
 
-Use the two raw opencode commands shown below until the Codex `opencode` plugin exists.
+Use the three raw opencode commands shown below until the Codex `opencode` plugin exists.
 
 ```bash
 REPO_ROOT="$(pwd)"
 /home/chris/.opencode/bin/opencode run \
-  --model deepseek/deepseek-v4-flash \
+  --model opencode-go/deepseek-v4-flash \
   --format default \
   --print-logs --log-level INFO \
   --dangerously-skip-permissions \
@@ -31,7 +32,17 @@ REPO_ROOT="$(pwd)"
 ```bash
 REPO_ROOT="$(pwd)"
 /home/chris/.opencode/bin/opencode run \
-  --model volcengine-plan/glm-5.1 \
+  --model opencode-go/glm-5.1 \
+  --format default \
+  --print-logs --log-level INFO \
+  --dangerously-skip-permissions \
+  "Code review the changes on this branch in ${REPO_ROOT}. Run git diff main...HEAD if available, otherwise inspect the working tree. Focus on correctness, security, consistency with AGENTS.md and docs/architecture/decisions.md. Do not modify files. Return findings with file:line references and verdict approve or needs-attention."
+```
+
+```bash
+REPO_ROOT="$(pwd)"
+/home/chris/.opencode/bin/opencode run \
+  --model opencode-go/kimi-k2.6 \
   --format default \
   --print-logs --log-level INFO \
   --dangerously-skip-permissions \
@@ -44,7 +55,7 @@ Append a review round to the relevant plan file's `## Code Review` section.
 Use this format:
 
 ```markdown
-### Review N - [codex] | [opencode:deepseek-v4-flash] | [opencode:glm-5.1]
+### Review N - [codex] | [opencode:deepseek-v4-flash] | [opencode:glm-5.1] | [opencode:kimi-k2.6]
 
 - **Date**: YYYY-MM-DD
 - **Reviewer**: Codex current session / opencode model / human name

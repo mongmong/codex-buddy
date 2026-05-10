@@ -3,7 +3,7 @@
 ## Purpose
 
 This note records the Codex plugin surfaces verified before porting the Claude Code `opencode` plugin.
-It exists so `docs/specs/opencode-plugin.md` can distinguish implemented parity from host limitations.
+It exists so `docs/specs/001-opencode-plugin.md` can distinguish implemented parity from host limitations.
 
 ## Verified Sources
 
@@ -43,8 +43,8 @@ Installed examples include `hooks.json`, which confirms hook configuration files
 
 The local references do not verify a command manifest convention or an agent manifest convention for Codex plugins.
 The Phase 1 plugin plan must verify the Codex-native command and agent surfaces before implementing command parity with the Claude Code plugin.
-Until that verification happens, command and agent parity rows in `docs/specs/opencode-plugin.md` must be marked as planned with documented host limitation.
+Until that verification happens, command and agent parity rows in `docs/specs/001-opencode-plugin.md` must be marked as planned with documented host limitation.
 
 ## Host Limitations
 
-Any source plugin feature that depends on an unavailable or unverified Codex host surface must be marked as "planned with documented host limitation" in `docs/specs/opencode-plugin.md`.
+Any source plugin feature that depends on an unavailable or unverified Codex host surface must be marked as "planned with documented host limitation" in `docs/specs/001-opencode-plugin.md`.

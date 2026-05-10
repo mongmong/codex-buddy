@@ -21,7 +21,7 @@ Explore the problem space before committing to an approach.
 
 - **Verbal alignment** for simple, well-defined tasks.
 - **Straight to plan** when the design is concrete and there are no durable architectural decisions to record.
-- **Design spec** in `docs/specs/` when the work introduces or refines an architectural decision or resolves cross-cutting ambiguity.
+- **Design spec** in `docs/specs/NNN-kebab-name.md` when the work introduces or refines an architectural decision or resolves cross-cutting ambiguity.
 
 Rule of thumb:
 
@@ -34,6 +34,17 @@ The fuller design context for each decision lives in the relevant spec or plan.
 
 Skip this step only when the task is well-defined with an obvious approach.
 
+## Documentation Taxonomy
+
+Plan-driven execution docs use numbered filenames:
+
+- `docs/specs/NNN-kebab-name.md` - design specs for architectural or cross-cutting decisions.
+- `docs/plans/NNN-kebab-name.md` - concrete execution plans.
+- `docs/reviews/NNN-kebab-name.md` - standalone audits or transcript reviews when no plan owns the review.
+
+Plan and code review verdicts for a numbered plan are embedded in that plan file.
+Use standalone review docs only when there is no owning plan.
+
 ## Step 2 — Plan
 
 Write a concrete execution plan with phases, files, tests, and verification steps.
@@ -43,19 +54,44 @@ Write a concrete execution plan with phases, files, tests, and verification step
 3. Read the project backlog file if one exists for relevant outstanding work.
 4. Write a detailed plan with phases, file lists, testing or verification per phase, and final verification steps.
 5. Self-review the plan for inconsistencies, missing files, stale references, blast radius, naming conflicts, and edge cases.
-6. Save the plan to `docs/plans/` with the next sequential number.
+6. Save the plan to `docs/plans/NNN-kebab-name.md` with the next sequential number.
 7. Dispatch the Phase 0 plan-review gate.
-8. If the reviewer flags blockers, revise the plan and re-dispatch review on the revised plan.
+8. If any reviewer flags blockers, revise the plan and re-dispatch only the flagging reviewer on the revised plan.
 9. Get user approval on the reviewed plan.
 10. Commit the reviewed plan file before implementation.
 
-Phase 0 external plan review uses raw `opencode run` until the Codex `opencode` plugin exists:
+Phase 0 plan review uses Codex self-review plus multiple raw `opencode run` reviewers until the Codex `opencode` plugin exists.
+All reviewer prompts are read-only and must return `approve` or `needs-attention`.
+Record each verdict in the plan file's `## Plan Review` section.
+
+Plan review roster:
+
+| Reviewer | Phase 0 dispatch | Model |
+|---|---|---|
+| Codex self-review | Current Codex session reads the plan critically | current Codex model |
+| DeepSeek planning review | raw `opencode run` | `opencode-go/deepseek-v4-pro` |
+| GLM planning review | raw `opencode run` | `opencode-go/glm-5.1` |
+| Kimi planning review | raw `opencode run` | `opencode-go/kimi-k2.6` |
 
 ```bash
 PLAN_PATH="docs/plans/000-workflow-mirror.md"
 REPO_ROOT="$(pwd)"
 /home/chris/.opencode/bin/opencode run \
-  --model deepseek/deepseek-v4-pro \
+  --model opencode-go/deepseek-v4-pro \
+  --format default \
+  --print-logs --log-level INFO \
+  --dangerously-skip-permissions \
+  "Review ${PLAN_PATH} in ${REPO_ROOT}. Focus on blockers, hidden assumptions, scope/order problems, and missing risks. Do not modify files. Return verdict approve or needs-attention with blockers."
+
+/home/chris/.opencode/bin/opencode run \
+  --model opencode-go/glm-5.1 \
+  --format default \
+  --print-logs --log-level INFO \
+  --dangerously-skip-permissions \
+  "Review ${PLAN_PATH} in ${REPO_ROOT}. Focus on blockers, hidden assumptions, scope/order problems, and missing risks. Do not modify files. Return verdict approve or needs-attention with blockers."
+
+/home/chris/.opencode/bin/opencode run \
+  --model opencode-go/kimi-k2.6 \
   --format default \
   --print-logs --log-level INFO \
   --dangerously-skip-permissions \
@@ -64,7 +100,7 @@ REPO_ROOT="$(pwd)"
 
 Record material reviewer output and resolutions in the plan file.
 Do not invent external Codex reviewer commands during Phase 0.
-Use current-session Codex self-review plus the raw `opencode` plan reviewer.
+Use current-session Codex self-review plus the raw `opencode` plan reviewers.
 
 ## Step 3 — Build
 
@@ -98,18 +134,20 @@ Before claiming work is done, run verification commands and confirm the actual o
 ## Step 5 — Review
 
 Code review happens after implementation is complete and verification has passed.
-During Phase 0, use three review inputs:
+During Phase 0, use four review inputs:
 
 1. Current-session Codex self-review.
-2. Raw `opencode run` pinned to `deepseek/deepseek-v4-flash`.
-3. Raw `opencode run` pinned to `volcengine-plan/glm-5.1`.
+2. Raw `opencode run` pinned to `opencode-go/deepseek-v4-flash`.
+3. Raw `opencode run` pinned to `opencode-go/glm-5.1`.
+4. Raw `opencode run` pinned to `opencode-go/kimi-k2.6`.
 
 Use these raw reviewer commands until the Codex `opencode` plugin exists:
 
 ```bash
 REPO_ROOT="$(pwd)"
-/home/chris/.opencode/bin/opencode run --model deepseek/deepseek-v4-flash --format default --print-logs --log-level INFO --dangerously-skip-permissions "Code review the changes on this branch in ${REPO_ROOT}. Run git diff main...HEAD if available, otherwise inspect the working tree. Focus on correctness, security, consistency with AGENTS.md and docs/architecture/decisions.md. Do not modify files. Return findings with file:line references and verdict approve or needs-attention."
-/home/chris/.opencode/bin/opencode run --model volcengine-plan/glm-5.1 --format default --print-logs --log-level INFO --dangerously-skip-permissions "Code review the changes on this branch in ${REPO_ROOT}. Run git diff main...HEAD if available, otherwise inspect the working tree. Focus on correctness, security, consistency with AGENTS.md and docs/architecture/decisions.md. Do not modify files. Return findings with file:line references and verdict approve or needs-attention."
+/home/chris/.opencode/bin/opencode run --model opencode-go/deepseek-v4-flash --format default --print-logs --log-level INFO --dangerously-skip-permissions "Code review the changes on this branch in ${REPO_ROOT}. Run git diff main...HEAD if available, otherwise inspect the working tree. Focus on correctness, security, consistency with AGENTS.md and docs/architecture/decisions.md. Do not modify files. Return findings with file:line references and verdict approve or needs-attention."
+/home/chris/.opencode/bin/opencode run --model opencode-go/glm-5.1 --format default --print-logs --log-level INFO --dangerously-skip-permissions "Code review the changes on this branch in ${REPO_ROOT}. Run git diff main...HEAD if available, otherwise inspect the working tree. Focus on correctness, security, consistency with AGENTS.md and docs/architecture/decisions.md. Do not modify files. Return findings with file:line references and verdict approve or needs-attention."
+/home/chris/.opencode/bin/opencode run --model opencode-go/kimi-k2.6 --format default --print-logs --log-level INFO --dangerously-skip-permissions "Code review the changes on this branch in ${REPO_ROOT}. Run git diff main...HEAD if available, otherwise inspect the working tree. Focus on correctness, security, consistency with AGENTS.md and docs/architecture/decisions.md. Do not modify files. Return findings with file:line references and verdict approve or needs-attention."
 ```
 
 Each material finding is recorded in the plan file's `## Code Review` section using the format in `docs/code-review.md`.
@@ -117,6 +155,48 @@ All open blocker findings must be resolved before shipping.
 
 When acting on review feedback, evaluate each finding rigorously before implementing it.
 If a finding is ambiguous or technically questionable, document the reasoning instead of applying it blindly.
+
+## Investigation Gate
+
+Use this gate for complex bug investigations before drafting a fix plan.
+It applies when a prior fix did not resolve the issue, when the root cause is not obvious from a single read, or when multiple plausible hypotheses exist.
+Investigations are read-only diagnosis; investigators do not write patches.
+
+Investigation roster:
+
+| Investigator | Phase 0 dispatch | Model |
+|---|---|---|
+| Codex self-investigation | Current Codex session reads the failing surface and lists hypotheses | current Codex model |
+| DeepSeek investigation | raw `opencode run` | `opencode-go/deepseek-v4-pro` |
+| GLM investigation | raw `opencode run` | `opencode-go/glm-5.1` |
+
+Investigation uses two external models because the goal is hypothesis triangulation, not review consensus.
+Kimi remains part of the plan and code review gates where the goal is broad blocker detection before shipping.
+
+Use this prompt shape for external investigators:
+
+```bash
+REPO_ROOT="$(pwd)"
+BUG_SUMMARY="Describe the symptom and reproduction context here."
+/home/chris/.opencode/bin/opencode run \
+  --model opencode-go/deepseek-v4-pro \
+  --format default \
+  --print-logs --log-level INFO \
+  --dangerously-skip-permissions \
+  "Investigate this bug in ${REPO_ROOT}: ${BUG_SUMMARY}. Do not modify files. Diagnose only. Report [BLOCKER], [CONCERN], or [NIT] findings with file:line references and a top hypothesis."
+
+/home/chris/.opencode/bin/opencode run \
+  --model opencode-go/glm-5.1 \
+  --format default \
+  --print-logs --log-level INFO \
+  --dangerously-skip-permissions \
+  "Investigate this bug in ${REPO_ROOT}: ${BUG_SUMMARY}. Do not modify files. Diagnose only. Report [BLOCKER], [CONCERN], or [NIT] findings with file:line references and a top hypothesis."
+```
+
+Triangulate the three reports before changing code.
+When at least two investigators converge on the same root cause, use that as the leading hypothesis.
+When one investigator finds a unique plausible cause, inspect it directly before discarding it.
+If the reports contradict each other, gather more evidence or ask the user for additional reproduction data before planning a fix.
 
 ## Step 6 — Ship
 

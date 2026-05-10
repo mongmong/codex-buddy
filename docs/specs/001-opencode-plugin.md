@@ -52,7 +52,7 @@ plugins/opencode/
 └── CHANGELOG.md
 ```
 
-`docs/specs/codex-plugin-surface-research.md` is authoritative for the Codex plugin surfaces verified during Phase 0.
+`docs/specs/000-codex-plugin-surface-research.md` is authoritative for the Codex plugin surfaces verified during Phase 0.
 Commands and agents are not locally verified yet.
 The Phase 1 plugin plan must verify the Codex-native command and agent surfaces before implementing command parity.
 
