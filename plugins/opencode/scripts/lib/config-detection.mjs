@@ -22,7 +22,7 @@ export function detectConfig({ configPath = defaultConfigPath() } = {}) {
     return { ok: false, error: `failed to parse config JSON at ${configPath}: ${err.message}` };
   }
   if (typeof parsed.model !== "string" || parsed.model.length === 0) {
-    return { ok: false, error: `no default \`model\` field in ${configPath} — set one (e.g., "model": "anthropic/claude-sonnet-4-6")` };
+    return { ok: false, error: `no default \`model\` field in ${configPath} — set one (e.g., "model": "provider/model-id")` };
   }
   return { ok: true, model: parsed.model, configPath };
 }

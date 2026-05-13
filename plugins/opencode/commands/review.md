@@ -19,8 +19,8 @@ Pre-flight (size estimation):
 - Inspect `git status --short --untracked-files=all`.
 - Inspect `git diff --shortstat --cached` and `git diff --shortstat`.
 - For branch scope, also inspect `git diff --shortstat <base>...HEAD`.
-- If the change set is non-trivial (more than ~10 files or unclear size), warn the user that an opencode run is billable on whichever provider they have configured. Use `AskUserQuestion` exactly once with two options:
-  - `Run the review (Recommended)` (or just `Run the review` if size is unclear)
+- If the change set is non-trivial (more than ~10 files or unknown size), warn the user that an opencode run is billable on whichever provider they have configured. Use `AskUserQuestion` exactly once with two options:
+  - `Run the review (Recommended)` (or just `Run the review` if size is unknown)
   - `Cancel`
 - If the change set is empty, tell the user "nothing to review" and stop without invoking opencode.
 

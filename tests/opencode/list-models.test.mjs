@@ -57,10 +57,10 @@ test("listModels handles a config with default model but no provider section", (
   const { dir, cleanup } = makeTempRepo();
   try {
     const cfgPath = join(dir, "opencode.json");
-    writeFileSync(cfgPath, JSON.stringify({ model: "anthropic/claude-sonnet-4-6" }));
+    writeFileSync(cfgPath, JSON.stringify({ model: "vendor/default-model" }));
     const result = listModels({ configPath: cfgPath });
     assert.equal(result.ok, true);
-    assert.deepEqual(result.value, ["anthropic/claude-sonnet-4-6"]);
+    assert.deepEqual(result.value, ["vendor/default-model"]);
   } finally {
     cleanup();
   }

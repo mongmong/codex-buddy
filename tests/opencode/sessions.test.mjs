@@ -114,8 +114,8 @@ test("currentSessionKey: override always wins", () => {
 // --- sessionFilePath ---
 
 test("sessionFilePath: composes <projectDir>/.codex-buddy/opencode/sessions/<key>-<role>-<sanitised-model>.session-id", () => {
-  const path = sessionFilePath("/repo/x", "plan-001", "review", "opencode-go/deepseek-v4-pro");
-  assert.equal(path, "/repo/x/.codex-buddy/opencode/sessions/plan-001-review-opencode-go-deepseek-v4-pro.session-id");
+  const path = sessionFilePath("/repo/x", "plan-001", "review", "provider/model-pro");
+  assert.equal(path, "/repo/x/.codex-buddy/opencode/sessions/plan-001-review-provider-model-pro.session-id");
 });
 
 test("sessionFilePath: sanitises malicious key (path traversal defense)", () => {
@@ -124,8 +124,8 @@ test("sessionFilePath: sanitises malicious key (path traversal defense)", () => 
 });
 
 test("sessionFilePath: handles model strings with slashes", () => {
-  const path = sessionFilePath("/repo/x", "scratch", "run", "opencode-go/glm-5.1");
-  assert.equal(path, "/repo/x/.codex-buddy/opencode/sessions/scratch-run-opencode-go-glm-5-1.session-id");
+  const path = sessionFilePath("/repo/x", "scratch", "run", "provider/model-5.1");
+  assert.equal(path, "/repo/x/.codex-buddy/opencode/sessions/scratch-run-provider-model-5-1.session-id");
 });
 
 // --- loadSessionId / saveSessionId / deleteSessionId ---

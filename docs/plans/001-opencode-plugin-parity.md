@@ -789,7 +789,7 @@ git commit -m "feat: add opencode review gate hooks"
 - Modify: `docs/architecture/decisions.md`
 - Modify: `docs/architecture/decisions.md`
 
-- [ ] **Step 1: Update root README**
+- [x] **Step 1: Update root README**
 
 Add a section that points to:
 
@@ -797,7 +797,7 @@ Add a section that points to:
 - `docs/specs/001-opencode-plugin.md`
 - `docs/development-workflow.md`
 
-- [ ] **Step 2: Update plugin README**
+- [x] **Step 2: Update plugin README**
 
 Document:
 
@@ -810,7 +810,7 @@ Document:
 - `.codex-buddy/opencode/tmp/` transient storage policy
 - host limitations for commands, agents, or hooks that are not verified
 
-- [ ] **Step 3: Run full tests**
+- [x] **Step 3: Run full tests**
 
 Run:
 
@@ -820,7 +820,7 @@ npm test
 
 Expected: all tests pass.
 
-- [ ] **Step 4: Run documentation audits**
+- [x] **Step 4: Run documentation audits**
 
 Run:
 
@@ -831,7 +831,7 @@ rg -n "\\.claudecode-budd[y]|\\.claude-plugi[n]|CLAUDE_PLUGIN_ROO[T]|\\$TMPDIR/o
 
 Expected: both commands exit 1 with no matches.
 
-- [ ] **Step 5: Check architecture decisions and backlog**
+- [x] **Step 5: Check architecture decisions and backlog**
 
 Run:
 
@@ -855,7 +855,7 @@ OPENCODE_E2E=1 npm test -- tests/opencode/e2e.test.mjs
 
 Expected: live tests pass when opencode credentials and models are configured.
 
-- [ ] **Step 7: Run code review gate**
+- [x] **Step 7: Run code review gate**
 
 After implementation, full tests, and docs audits pass, dispatch the workflow code review gate:
 
@@ -867,7 +867,7 @@ After implementation, full tests, and docs audits pass, dispatch the workflow co
 Record material findings and resolutions in this plan's `## Code Review` section using `docs/code-review.md`.
 Do not ship while blocker findings remain open.
 
-- [ ] **Step 8: Add post-execution report**
+- [x] **Step 8: Add post-execution report**
 
 Append `## Post-Execution Report` to this plan with:
 
@@ -877,7 +877,7 @@ Append `## Post-Execution Report` to this plan with:
 - deviations from plan
 - follow-up work
 
-- [ ] **Step 9: Commit Task 7**
+- [x] **Step 9: Commit Task 7**
 
 Run:
 
@@ -960,4 +960,41 @@ Record reviewer findings and resolutions below before beginning Task 1.
 
 ## Code Review
 
-Implementation code review findings will be recorded here after Task 7 verification and before shipping.
+### Implementation Review
+
+- Codex self-review: `needs-attention`
+  - Finding: stale provider-specific model examples remained in shipped runtime/test surfaces. Resolution: replaced concrete model names with generic placeholders in shipped plugin documentation, skill, command, agent, runtime, and test fixture surfaces.
+  - Finding: the edited-run fixture could leave `fixed.js` in the repository root after session-list fallback calls. Resolution: `mock-opencode-run-with-edits.mjs` now handles `--version` and `session list` as side-effect-free commands and requires `--dir` before writing the mocked edited file.
+- DeepSeek implementation review (`opencode-go/deepseek-v4-flash`): `approve`
+  - Confirmed no blocker findings after generalizing model references and fixing the transient `fixed.js` artifact.
+- GLM implementation review (`opencode-go/glm-5.1`): `approve`
+  - Confirmed the stale model references and root artifact issue were resolved.
+- Kimi implementation review (`opencode-go/kimi-k2.6`): `approve`
+  - Confirmed the shipped plugin skill is general and no blocking regressions remained.
+
+## Post-Execution Report
+
+Implemented behavior:
+
+- Added the Codex-native `opencode` plugin scaffold, marketplace entry, command files, agent files, bundled runtime skill, prompt assets, schemas, and Node ESM companion runtime.
+- Ported review, prompt, setup, model listing, session continuity, delegated run, background job lifecycle, status/result/cancel, and review-gate runtime behavior.
+- Stored durable plugin state under `.codex-buddy/opencode/` and plugin-controlled transient prompt/task files under `.codex-buddy/opencode/tmp/`.
+- Kept the skill and user-facing model examples provider-neutral; concrete configured model IDs are selected from the user's opencode config or supplied as `<model-name>`.
+
+Tests and audits:
+
+- `npm test`: 257 tests, 254 passed, 0 failed, 3 skipped.
+- `git diff --check`: passed.
+- Provider-specific shipped-surface audit for stale `anthropic/claude`, `opencode-go/deepseek`, `opencode-go/glm`, `opencode-go/kimi`, `deepseek-v4`, `glm-5`, and `kimi-k2` references: no matches in `plugins/opencode` or `tests/opencode`.
+- Root artifact audit after the full test run: no `fixed.js` left in the repository root.
+
+Host limitations:
+
+- `plugins/opencode/hooks.json` intentionally leaves active lifecycle hooks disabled until Codex lifecycle event names are verified.
+- Hook helper scripts and the stop-review gate remain directly testable and available for future host integration.
+- Optional live opencode smoke tests were not run in this phase; they remain gated behind `OPENCODE_E2E=1`.
+
+Deviations and follow-up:
+
+- `/claudecode:*` command support remains deferred as future work.
+- The plugin ships command and agent markdown surfaces plus a skill-backed runtime; any future host-specific lifecycle hook activation must update `hooks.json`, tests, and the capability matrix together.

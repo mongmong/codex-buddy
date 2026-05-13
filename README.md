@@ -6,3 +6,11 @@ The first target is a Codex-native `opencode` plugin with practical parity with 
 
 Before plugin development, this repo adopts the development workflow from `../claudecode-buddy`.
 See `AGENTS.md`, `docs/development-workflow.md`, and `docs/plans/`.
+
+## opencode Plugin
+
+The `opencode` plugin lives in `plugins/opencode/`.
+
+- User guide: `plugins/opencode/README.md`
+- Design spec: `docs/specs/001-opencode-plugin.md`
+- Development workflow: `docs/development-workflow.md`

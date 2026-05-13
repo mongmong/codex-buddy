@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 
-const DEFAULT_TIMEOUT_MS = 1_200_000; // 20 minutes — long-running plan/code reviews on slower providers (deepseek-v4-pro, glm-5.1) routinely run 6-12 min; 5min was too tight in practice
+const DEFAULT_TIMEOUT_MS = 1_200_000; // 20 minutes; long-running plan/code reviews on slower providers routinely need more than the previous 5 minute cap.
 const KILL_GRACE_MS = 2000;
 
 function parseEvents(stdout) {

@@ -61,6 +61,15 @@ Investigation uses a smaller external roster than plan and code review because d
 
 Why: the workspace intentionally mirrors the stronger review discipline from `../magicburg-go/CLAUDE.md` while adapting it to Codex and the current Phase 0 raw-opencode bootstrap.
 
+## D-009 — Conservative Lifecycle Hooks
+
+The `opencode` plugin ships hook helper scripts and a gate command, but `plugins/opencode/hooks.json` keeps active lifecycle hooks disabled until Codex lifecycle event names are verified.
+The directly testable helpers use `CODEX_PROJECT_DIR` and `.codex-buddy/opencode/` state.
+
+Why: local Codex plugin examples verify plugin-root `hooks.json` and a `PostToolUse` event, but do not verify lifecycle events equivalent to the source plugin's session and stop hooks.
+The plugin preserves the runtime capability without installing unverified host hooks.
+See `docs/specs/001-opencode-plugin.md` and `docs/plans/001-opencode-plugin-parity.md`.
+
 ## How To Add A Decision
 
 1. Add a new `## D-NNN — Short Title` section.
